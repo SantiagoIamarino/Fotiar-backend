@@ -12,6 +12,7 @@ const userSchema = new Schema({
     purchasesNetAmount: { type: Number, default: 0 },
     observation: { type: String },
     createdAt: { type: Date, default: new Date() },
+    registerMethod: { type: String, default: 'normal' }
 })
 
 module.exports = mongoose.model('User', userSchema);

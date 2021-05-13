@@ -32,6 +32,15 @@ function loginUser(user, password) {
     
 }
 
+function getTokenExpiration() {
+    const daysToExpire = 3;
+    const expiration = 1000 * 60 * 60 * 24 * daysToExpire; // three days in ms
+
+    const tokenExpiration = new Date().getTime() + expiration;
+
+    return tokenExpiration;
+}
+
 app.post('/register', (req, res) => {
     const body = req.body;
 
@@ -75,9 +84,7 @@ app.post('/register', (req, res) => {
             loginUser(userSaved, password)
                 .then((token) => {
                     userSaved.password = '';
-                    const expiration = 1000 * 60 * 60 * 24 * 3; // three days in ms
-
-                    const tokenExpiration = new Date().getTime() + expiration;
+                    const tokenExpiration = getTokenExpiration();
 
                     return res.status(200).json({
                         user: userSaved,
@@ -127,9 +134,7 @@ app.post('/login', (req, res) => {
         loginUser(userDB, body.password)
             .then((token) => {
                 userDB.password = '';
-                const expiration = 1000 * 60 * 60 * 24 * 3; // three days in ms
-
-                const tokenExpiration = new Date().getTime() + expiration;
+                const tokenExpiration = getTokenExpiration();
 
                 return res.status(200).json({
                     user: userDB,
@@ -143,6 +148,82 @@ app.post('/login', (req, res) => {
                     message: error.message
                 })
             })
+    })
+})
+
+app.post('/login-google', (req, res) => {
+    const body = req.body;
+
+    if(!body.email) {
+        return res.status(400).json({
+            ok: false,
+            message: 'Debes ingresar un email'
+        })
+    }
+
+    User.findOne({
+        email: body.email,
+        registerMethod: 'google'
+    }).exec((err, userDB) => {
+        if(err) {
+            return res.status(500).json({
+                ok: false,
+                error: err
+            })
+        }
+
+        if(!userDB) {
+            return res.status(400).json({
+                ok: false,
+                message: 'No existe un usuario registrado con ese email/alias'
+            })
+        }
+
+        loginUser(userDB, 'google-account')
+            .then((token) => {
+                userDB.password = '';
+                const tokenExpiration = getTokenExpiration();
+
+                return res.status(200).json({
+                    user: userDB,
+                    token,
+                    tokenExpiration
+                })
+            })
+            .catch((error) => {
+                return res.status(error.status).json({
+                    ok: false,
+                    message: error.message
+                })
+            })
+    })
+})
+
+app.post('/renew-token', (req, res) => {
+    const token = req.body.token;
+
+    jwt.verify(token, jwtKey, (err, decoded) => {
+        if(err) {
+            return res.status(500).json({
+                ok: false,
+                error: err
+            })
+        }
+
+        const payload = {
+            check: true,
+            user: decoded.user
+        }
+
+        const token = jwt.sign(payload, jwtKey, {
+            expiresIn: "3d"
+        });
+
+        return res.status(200).json({
+            ok: true,
+            token,
+            tokenExpiration: getTokenExpiration()
+        })
     })
 })
 
