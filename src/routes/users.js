@@ -35,7 +35,29 @@ app.get('/get-user/:userId', [mdAuth, mdRole], (req, res) => {
 })
 
 app.post('/get-users', [mdAuth, mdRole], (req, res) => {
-    User.find({}, contentToRetrieve)
+    const filters = req.body;
+
+    const mongooseFilters = {
+        email: new RegExp( filters.email, 'i' ),
+        role: filters.role
+    }
+
+    if(!filters.email) {
+        delete mongooseFilters.email;
+    }
+
+    if(!filters.role) {
+        delete mongooseFilters.role;
+    }
+
+    let sortFilter = [];
+
+    if(filters.order.by) {
+        sortFilter = [[filters.order.by, filters.order.order]];
+    }
+
+    User.find(mongooseFilters, contentToRetrieve)
+        .sort(sortFilter)
         .exec((err, users) => {
             if(err) {
                 return res.status(500).json({
