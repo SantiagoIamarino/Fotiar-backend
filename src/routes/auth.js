@@ -151,7 +151,7 @@ app.post('/login', (req, res) => {
     })
 })
 
-app.post('/login-google', (req, res) => {
+app.post('/login-social', (req, res) => {
     const body = req.body;
 
     if(!body.email) {
@@ -163,7 +163,7 @@ app.post('/login-google', (req, res) => {
 
     User.findOne({
         email: body.email,
-        registerMethod: 'google'
+        registerMethod: req.body.method
     }).exec((err, userDB) => {
         if(err) {
             return res.status(500).json({
@@ -179,7 +179,7 @@ app.post('/login-google', (req, res) => {
             })
         }
 
-        loginUser(userDB, 'google-account')
+        loginUser(userDB, body.method + '-account')
             .then((token) => {
                 userDB.password = '';
                 const tokenExpiration = getTokenExpiration();

@@ -25,6 +25,7 @@ const http = require('http').createServer( app);
 // Import routes
 const userRoutes =  require('./routes/users');
 const authRoutes =  require('./routes/auth');
+const profileRoutes =  require('./routes/profile');
 
 // DB connection
 mongoose.connection.openUri('mongodb://localhost:27017/FOTIARDB', (err, res) => {
@@ -38,6 +39,7 @@ mongoose.connection.openUri('mongodb://localhost:27017/FOTIARDB', (err, res) => 
 // Routes 
 app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
+app.use('/profile', profileRoutes);
 
 
 // Listen port 3000
