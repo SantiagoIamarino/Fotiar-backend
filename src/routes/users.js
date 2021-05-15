@@ -9,6 +9,31 @@ const User = require('../models/user');
 
 const contentToRetrieve = 'name username email createdAt role favorites purchases purchasesNetAmount observation';
 
+app.get('/get-user/:userId', [mdAuth, mdRole], (req, res) => {
+    const userId = req.params.userId;
+
+    User.findById(userId, contentToRetrieve, (err, userDB) => {
+        if(err) {
+            return res.status(500).json({
+                ok: false,
+                error: err
+            })
+        }
+
+        if(!userDB) {
+            return res.status(400).json({
+                ok: false,
+                message: 'Usuario no encontrado'
+            })
+        }
+
+        return res.status(200).json({
+            ok: true,
+            user: userDB
+        })
+    })
+})
+
 app.post('/get-users', [mdAuth, mdRole], (req, res) => {
     User.find({}, contentToRetrieve)
         .exec((err, users) => {
@@ -66,6 +91,26 @@ app.post('/', [mdAuth, mdRole], (req, res) => {
     })
 })
 
+function checkEmail(newEmail, lastEmail) {
+    return new Promise((resolve, reject) => {
+        if(newEmail && newEmail !== lastEmail) {
+            User.findOne({email: newEmail}, (errFind, userFound) => {
+                if(userFound) {
+                    reject({
+                        ok: false,
+                        message: 'El email indicado ya se encuentra en uso'
+                    });
+                }
+    
+                resolve(newEmail);
+            })
+        } else {
+            resolve(lastEmail);
+        }
+    })
+    
+}
+
 app.put('/:userId', [mdAuth, mdRole], (req, res) => {
     const userId = req.params.userId;
     const body = req.body;
@@ -85,21 +130,33 @@ app.put('/:userId', [mdAuth, mdRole], (req, res) => {
             })
         }
 
-        body.password = bcrypt.hashSync(body.password, 10);
+        if(body.password) {
+            body.password = bcrypt.hashSync(body.password, 10);
+        } else {
+            body.password = userDB.password;
+        }
 
-        userDB.update(body, (errUpdt, userUpdated) => {
-            if(errUpdt) {
-                return res.status(500).json({
-                    ok: false,
-                    error: errUpdt
-                })
-            }
-
-            return res.status(200).json({
-                ok: true,
-                message: 'Usuario modificado correctamente'
+        checkEmail(body.email, userDB.email).then((newEmail) => {
+            userDB.email = newEmail;
+            userDB.name = body.name;
+ 
+            userDB.update(userDB, (errUpdt, userUpdated) => {
+             if(errUpdt) {
+                 return res.status(500).json({
+                     ok: false,
+                     error: errUpdt
+                 })
+             }
+ 
+             return res.status(200).json({
+                 ok: true,
+                 message: 'Has editado este usuario correctamente'
+             })
             })
         })
+        .catch((error) => {
+            return res.status(400).json(error);
+        });
     })
 })
 
