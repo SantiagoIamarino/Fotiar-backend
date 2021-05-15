@@ -1,12 +1,15 @@
 const express = require('express');
 const app = express();
 
+const mdAuth = require('../middlewares/auth').verifyToken;
+const mdSameUser = require('../middlewares/sameUser').verifyUser;
+
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 
 const contentToRetrive = '_id role email username name';
 
-app.get('/:userId', (req, res) => {
+app.get('/:userId', [mdAuth, mdSameUser], (req, res) => {
     const userId = req.params.userId;
 
     User.findById(userId, contentToRetrive, (err, userDB) => {
@@ -51,7 +54,7 @@ function checkEmail(newEmail, lastEmail) {
     
 }
 
-app.put('/:userId', (req, res) => {
+app.put('/:userId', [mdAuth, mdSameUser], (req, res) => {
     const userId = req.params.userId;
     const body = req.body;
 
