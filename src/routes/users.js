@@ -35,7 +35,8 @@ app.get('/get-user/:userId', [mdAuth, mdRole], (req, res) => {
 })
 
 app.post('/get-users', [mdAuth, mdRole], (req, res) => {
-    const filters = req.body;
+    const filters = req.body.filters;
+    const pagination = req.body.pagination;
 
     const mongooseFilters = {
         email: new RegExp( filters.email, 'i' ),
@@ -56,21 +57,37 @@ app.post('/get-users', [mdAuth, mdRole], (req, res) => {
         sortFilter = [[filters.order.by, filters.order.order]];
     }
 
-    User.find(mongooseFilters, contentToRetrieve)
-        .sort(sortFilter)
-        .exec((err, users) => {
-            if(err) {
-                return res.status(500).json({
-                    ok: false,
-                    error: err
-                })
-            }
-
-            return res.status(200).json({
-                ok: true,
-                users
+    User.count(mongooseFilters, (errCount, total) => {
+        if(errCount) {
+            return res.status(500).json({
+                ok: false,
+                error: errCount
             })
-        })
+        }
+
+        const limit = pagination.perPage;
+        const skip = (pagination.actualPage * pagination.perPage) - pagination.perPage;
+
+        User.find(mongooseFilters, contentToRetrieve)
+            .skip(skip)
+            .limit(limit)
+            .sort(sortFilter)
+            .exec((err, users) => {
+                if(err) {
+                    return res.status(500).json({
+                        ok: false,
+                        error: err
+                    })
+                }
+
+                return res.status(200).json({
+                    ok: true,
+                    users,
+                    total,
+                    skip
+                })
+            })
+    })
 } )
 
 app.post('/', [mdAuth, mdRole], (req, res) => {
