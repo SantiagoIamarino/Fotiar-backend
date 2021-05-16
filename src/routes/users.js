@@ -1,6 +1,9 @@
 const express = require('express');
 const app = express();
+
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const jwtKey = require('../config/vars').jwtKey;
 
 const mdAuth = require('../middlewares/auth').verifyToken;
 const mdRole = require('../middlewares/role').verifyRole;
@@ -230,6 +233,31 @@ app.delete('/:userId', [mdAuth, mdRole], (req, res) => {
                 message: 'Usuario eliminado correctamente'
             })
         })
+    })
+})
+
+app.post('/take-control', [mdAuth, mdRole], (req, res) => {
+    const body = req.body;
+
+    const payload = {
+        check: true,
+        user: body
+    }
+
+    const token = jwt.sign(payload, jwtKey, {
+        expiresIn: "3d"
+    });
+
+    const daysToExpire = 3;
+    const expiration = 1000 * 60 * 60 * 24 * daysToExpire; // three days in ms
+
+    const tokenExpiration = new Date().getTime() + expiration;
+
+    return res.status(200).json({
+        ok: true,
+        token,
+        tokenExpiration,
+        user: body
     })
 })
 
