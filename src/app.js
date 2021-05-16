@@ -28,8 +28,8 @@ const authRoutes =  require('./routes/auth');
 const profileRoutes =  require('./routes/profile');
 
 // DB connection
-mongoose.connection.openUri('mongodb://localhost:27017/FOTIARDB', (err, res) => {
-    // mongoose.connection.openUri('mongodb+srv://I-FDesign:Huracan12@cluster0.l5mlh.mongodb.net/cilp?retryWrites=true&w=majority', (err, res) => {
+// mongoose.connection.openUri('mongodb://localhost:27017/FOTIARDB', (err, res) => {
+    mongoose.connection.openUri('mongodb://root:Fotiar_Sistemas12@127.0.0.1:27017/FotiarDB', (err, res) => {
     if (err) throw err;
 
     console.log('Database running fine!');
