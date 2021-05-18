@@ -179,10 +179,9 @@ app.put('/:userId', [mdAuth, mdRole], (req, res) => {
         }
 
         checkEmail(body.email, userDB.email).then((newEmail) => {
-            userDB.email = newEmail;
-            userDB.name = body.name;
+            body.email = newEmail;
  
-            userDB.update(userDB, (errUpdt, userUpdated) => {
+            userDB.update(body, (errUpdt, userUpdated) => {
              if(errUpdt) {
                  return res.status(500).json({
                      ok: false,
