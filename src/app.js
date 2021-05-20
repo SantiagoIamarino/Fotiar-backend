@@ -26,6 +26,7 @@ const http = require('http').createServer( app);
 const userRoutes =  require('./routes/users');
 const authRoutes =  require('./routes/auth');
 const profileRoutes =  require('./routes/profile');
+const filesRoutes =  require('./routes/files');
 
 // DB connection
 // mongoose.connection.openUri('mongodb://localhost:27017/FOTIARDB', (err, res) => {
@@ -40,6 +41,7 @@ mongoose.connection.openUri('mongodb://Server:Fotiar_Sistemas12@127.0.0.1:27017/
 app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/profile', profileRoutes);
+app.use('/files', filesRoutes);
 
 
 // Listen port 3000
