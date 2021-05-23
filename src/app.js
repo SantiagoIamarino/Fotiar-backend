@@ -27,6 +27,8 @@ const userRoutes =  require('./routes/users');
 const authRoutes =  require('./routes/auth');
 const profileRoutes =  require('./routes/profile');
 const filesRoutes =  require('./routes/files');
+const imagesRoutes =  require('./routes/images');
+const tagsRoutes =  require('./routes/tags');
 
 // DB connection
 // mongoose.connection.openUri('mongodb://localhost:27017/FOTIARDB', (err, res) => {
@@ -42,6 +44,8 @@ app.use('/users', userRoutes);
 app.use('/auth', authRoutes);
 app.use('/profile', profileRoutes);
 app.use('/files', filesRoutes);
+app.use('/images', imagesRoutes);
+app.use('/tags', tagsRoutes);
 
 
 // Listen port 3000
