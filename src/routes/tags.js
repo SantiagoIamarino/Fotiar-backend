@@ -8,14 +8,18 @@ const mdSameUser = require('../middlewares/sameUser').verifyUser;
 
 app.post('/search', (req, res) => {
     const filter = new RegExp( req.body.filter, 'i' );
+    const current = req.body.currentTags; // Tags that will not show
     const pagination = req.body.pagination;
 
     const mongooseFilters = {
-        value: filter
+        $and: [
+            { value: filter },
+            { value: { $nin: current } }
+        ]
     }
 
     if(!req.body.filter || req.body.filter == null) {
-        delete mongooseFilters.value;
+        mongooseFilters.value = { value: { $nin: current } };
     }
 
     Tag.count(mongooseFilters, (errCount, total) => {
@@ -81,7 +85,8 @@ app.post('/:userId', [mdAuth, mdSameUser], (req, res) => {
     
             return res.status(201).json({
                 ok: true, 
-                message: 'Tag creado correctamente'
+                message: 'Tag creado correctamente',
+                tagSaved
             })
     
         })
