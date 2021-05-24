@@ -10,6 +10,7 @@ const imageSchema = new Schema({
     copyFileName: { type: String, required: true },
     totalSells: { type: String, default: 0 },
     tags: { type: Array, default: [] },
+    photographerId: { type: String, required: true },
     exifData: { type: Object }
 });
 
