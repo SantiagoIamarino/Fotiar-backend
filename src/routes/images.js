@@ -7,6 +7,7 @@ const fs = require('fs');
 const mdAuth = require('../middlewares/auth').verifyToken;
 const mdSameUser = require('../middlewares/sameUser').verifyUser;
 const mdRole = require('../middlewares/role').verifyRole;
+const mdImageOwner = require('../middlewares/imageOwner').verifyOwner;
 
 app.get('/image/:filename', [mdAuth, mdRole], (req, res) => {
     const { filename } = req.params;
@@ -45,6 +46,7 @@ app.post('/search/admin', [mdAuth, mdRole], (req, res) => {
 
     const mongooseFilters = {
         photographerId: new RegExp( filters.email, 'i' ),
+        status: (filters.showRecycled) ? 'deleted' : 'visible',
         $and: dateFilter
     }
 
@@ -96,7 +98,7 @@ app.post('/search/admin', [mdAuth, mdRole], (req, res) => {
     })
 })
 
-app.post('/:userId', [mdAuth, mdSameUser], (req, res) => {
+app.post('/:userId', [mdAuth, mdRole, mdSameUser], (req, res) => {
     const body = req.body;
 
     const image = new Image(body);
@@ -115,5 +117,97 @@ app.post('/:userId', [mdAuth, mdSameUser], (req, res) => {
         })
     })
 })
+
+app.delete('/:imageId', [mdAuth, mdRole], (req, res) => {
+    const imageId = req.params.imageId;
+
+    Image.findByIdAndDelete(imageId, (err, imageDeleted) => {
+        if(err) {
+            return res.status(500).json({
+                ok: false,
+                error: err
+            })
+        }
+
+        return res.status(200).json({
+            ok: true,
+            message: 'Imagen eliminada correctamente'
+        })
+    })
+})
+
+app.put('/edit-tags-date/:ownerId', [mdAuth, mdImageOwner], (req, res) => {
+    const imageId = req.body.imageId;
+    const tags = req.body.tags;
+    const creationDate = req.body.creationDate;
+
+    Image.findById(imageId, (err, imageDB) => {
+        if(err) {
+            return res.status(500).json({
+                ok: false,
+                error: err
+            })
+        }
+
+        if(!imageDB) {
+            return res.status(400).json({
+                ok: false,
+                message: 'No se ha encontrado la imagen'
+            })
+        }
+
+        if(creationDate) {
+            imageDB.creationDate = creationDate;
+        }
+
+        if(creationDate) {
+            imageDB.tags = tags;
+        }
+
+        imageDB.update(imageDB, (errUpdt, imageUpdated) => {
+            if(errUpdt) {
+                return res.status(500).json({
+                    ok: false,
+                    error: errUpdt
+                })
+            }
+
+            return res.status(200).json({
+                ok: true,
+                message: 'Imagen editada correctamente'
+            })
+        })
+    })
+})
+
+app.delete('/temporarly/:ownerId', [mdAuth, mdImageOwner], (req, res) => {
+    const imageId = req.query.imageId;
+
+    Image.findById(imageId, (err, imageDB) => {
+        if(err) {
+            return res.status(500).json({
+                ok: false,
+                error: err
+            })
+        }
+
+        imageDB.status = 'deleted';
+
+        imageDB.update(imageDB, (errUpdt, imageUpdated) => {
+            if(errUpdt) {
+                return res.status(500).json({
+                    ok: false,
+                    error: errUpdt
+                })
+            }
+
+            return res.status(200).json({
+                ok: true,
+                message: 'Imagen enviada a la papelera correctamente'
+            })
+        })
+    })
+})
+
 
 module.exports = app;
