@@ -4,6 +4,7 @@ const app = express();
 const Tag = require('../models/tag');
 
 const mdAuth = require('../middlewares/auth').verifyToken;
+const mdRole = require('../middlewares/role').verifyRole;
 const mdSameUser = require('../middlewares/sameUser').verifyUser;
 
 app.post('/search', (req, res) => {
@@ -56,7 +57,7 @@ app.post('/search', (req, res) => {
     
 })
 
-app.post('/:userId', [mdAuth, mdSameUser], (req, res) => {
+app.post('/:userId', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE']), mdSameUser], (req, res) => {
     const body = req.body;
 
     Tag.findOne({value: body.value}, (searchError, tagFound) => {
@@ -95,7 +96,7 @@ app.post('/:userId', [mdAuth, mdSameUser], (req, res) => {
     
 })
 
-app.delete('/:userId', [mdAuth, mdSameUser], (req, res) => {
+app.delete('/:userId', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE']), mdSameUser], (req, res) => {
     const tagId = req.query.tagId;
 
     Tag.findByIdAndDelete(tagId, (err, tagDeleted) => {

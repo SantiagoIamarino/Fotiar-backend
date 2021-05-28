@@ -12,7 +12,7 @@ const User = require('../models/user');
 
 const contentToRetrieve = 'name username email createdAt role favorites purchases purchasesNetAmount observation';
 
-app.get('/get-user/:userId', [mdAuth, mdRole], (req, res) => {
+app.get('/get-user/:userId', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
     const userId = req.params.userId;
 
     User.findById(userId, contentToRetrieve, (err, userDB) => {
@@ -37,7 +37,7 @@ app.get('/get-user/:userId', [mdAuth, mdRole], (req, res) => {
     })
 })
 
-app.post('/get-users', [mdAuth, mdRole], (req, res) => {
+app.post('/get-users', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
     const filters = req.body.filters;
     const pagination = req.body.pagination;
 
@@ -93,7 +93,7 @@ app.post('/get-users', [mdAuth, mdRole], (req, res) => {
     })
 } )
 
-app.post('/', [mdAuth, mdRole], (req, res) => {
+app.post('/', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
     const body = req.body;
 
     User.findOne({
@@ -153,7 +153,7 @@ function checkEmail(newEmail, lastEmail) {
     
 }
 
-app.put('/:userId', [mdAuth, mdRole], (req, res) => {
+app.put('/:userId', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
     const userId = req.params.userId;
     const body = req.body;
 
@@ -201,7 +201,7 @@ app.put('/:userId', [mdAuth, mdRole], (req, res) => {
     })
 })
 
-app.delete('/:userId', [mdAuth, mdRole], (req, res) => {
+app.delete('/:userId', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
     const userId = req.params.userId;
 
     User.findById(userId, (err, userDB) => {
@@ -235,7 +235,7 @@ app.delete('/:userId', [mdAuth, mdRole], (req, res) => {
     })
 })
 
-app.post('/take-control', [mdAuth, mdRole], (req, res) => {
+app.post('/take-control', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
     const body = req.body;
 
     const payload = {

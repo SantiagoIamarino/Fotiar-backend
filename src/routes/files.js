@@ -56,7 +56,13 @@ function generateCopy(file) {
             const copyFileName = 'copy-' + file.filename;
             image.write('./src/images/' + copyFileName);
             resolve(copyFileName);
-        });
+        }).catch((error) => {
+            console.log(error);
+            return res.status(500).json({
+                ok: false,
+                error
+            })
+        })
     })
     
 }

@@ -9,21 +9,21 @@ const mdSameUser = require('../middlewares/sameUser').verifyUser;
 const mdRole = require('../middlewares/role').verifyRole;
 const mdImageOwner = require('../middlewares/imageOwner').verifyOwner;
 
-app.get('/image/:filename', [mdAuth, mdRole], (req, res) => {
+app.get('/image/:filename', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE'])], (req, res) => {
     const { filename } = req.params;
     const dirname = path.resolve();
     const fullfilepath = path.join(dirname, 'src/images/' + filename);
+    const defaultImagePath = path.join(dirname, 'images/default.png');
 
     if(fs.existsSync(fullfilepath)) {
         return res.sendFile(fullfilepath);
     } else {
-        const defaultImagePath = path.join(dirname, 'images/default.png');
         return res.sendFile(defaultImagePath);
     }
     
 });
 
-app.post('/search/admin', [mdAuth, mdRole], (req, res) => {
+app.post('/search/admin', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE'])], (req, res) => {
     const filters = req.body.filters;
     const pagination = req.body.pagination;
 
@@ -48,6 +48,11 @@ app.post('/search/admin', [mdAuth, mdRole], (req, res) => {
         photographerId: new RegExp( filters.email, 'i' ),
         status: (filters.showRecycled) ? 'deleted' : 'visible',
         $and: dateFilter
+    }
+
+    if(req.user.role !== 'ADMIN_ROLE') {
+        delete mongooseFilters.photographerId;
+        mongooseFilters.ownerId = req.user._id;
     }
 
     if(!filters.date.to && !filters.date.from) {
@@ -98,7 +103,7 @@ app.post('/search/admin', [mdAuth, mdRole], (req, res) => {
     })
 })
 
-app.post('/:userId', [mdAuth, mdRole, mdSameUser], (req, res) => {
+app.post('/:userId', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE']), mdSameUser], (req, res) => {
     const body = req.body;
 
     const image = new Image(body);
@@ -118,7 +123,7 @@ app.post('/:userId', [mdAuth, mdRole, mdSameUser], (req, res) => {
     })
 })
 
-app.delete('/:imageId', [mdAuth, mdRole], (req, res) => {
+app.delete('/:imageId', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
     const imageId = req.params.imageId;
 
     Image.findByIdAndDelete(imageId, (err, imageDeleted) => {
@@ -160,7 +165,7 @@ app.put('/edit-tags-date/:ownerId', [mdAuth, mdImageOwner], (req, res) => {
             imageDB.creationDate = creationDate;
         }
 
-        if(creationDate) {
+        if(tags) {
             imageDB.tags = tags;
         }
 
