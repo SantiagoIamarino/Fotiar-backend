@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const Image = require('../models/image');
 const path = require('path');
+const filesUrl = require('../config/vars').filesPath;
 const fs = require('fs');
 
 const mdAuth = require('../middlewares/auth').verifyToken;
@@ -11,12 +12,11 @@ const mdImageOwner = require('../middlewares/imageOwner').verifyOwner;
 
 app.get('/image/:filename', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE'])], (req, res) => {
     const { filename } = req.params;
-    const dirname = path.resolve();
-    const fullfilepath = path.join(dirname, 'src/images/' + filename);
-    const defaultImagePath = path.join(dirname, 'images/default.png');
+    const fullFilePath = path.join(filesUrl, 'users/' + filename);
+    const defaultImagePath = path.join(filesUrl, 'default.png');
 
-    if(fs.existsSync(fullfilepath)) {
-        return res.sendFile(fullfilepath);
+    if(fs.existsSync(fullFilePath)) {
+        return res.sendFile(fullFilePath);
     } else {
         return res.sendFile(defaultImagePath);
     }

@@ -7,8 +7,6 @@ var jwtKey = require('../config/vars').jwtKey;
 
 module.exports.verifyToken = function( req, res, next ){
 
-    console.log(__dirname);
-
     var token = req.query.token;
 
     jwt.verify( token, jwtKey, ( err, decoded ) => {
