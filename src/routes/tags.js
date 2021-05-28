@@ -14,13 +14,16 @@ app.post('/search', (req, res) => {
 
     const mongooseFilters = {
         $and: [
-            { value: filter },
-            { value: { $nin: current } }
+            { value: filter }
         ]
     }
 
     if(!req.body.filter || req.body.filter == null) {
-        mongooseFilters.value = { value: { $nin: current } };
+        mongooseFilters.$and = [];
+    }
+
+    if(current || current.length > 0) {
+        mongooseFilters.$and.push({ value: { $nin: current } })
     }
 
     Tag.count(mongooseFilters, (errCount, total) => {
