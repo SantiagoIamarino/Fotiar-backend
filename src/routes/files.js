@@ -2,12 +2,13 @@ const express = require('express');
 const multer = require('multer');
 
 const Jimp = require("jimp");
+const filesUrl = require('../config/vars').filesPath;
 
 const app = express();
 
 let storage = multer.diskStorage({
     destination: (req, file, cb) => {
-      cb(null, "C:/Users/santi/Desktop/Fotiar/backend/src/images/");
+      cb(null, filesUrl + 'users/');
     },
     filename: (req, file, cb) => {
         const fileName = new Date().getTime() + '-' + file.originalname;
@@ -21,7 +22,7 @@ let uploadFile = multer({
 
 function generateCopy(file) {
     return new Promise((resolve, reject) => {
-        const LOGO = "C:/Users/santi/Desktop/Fotiar/backend/src/logo.png";
+        const LOGO = filesUrl + "logo.png";
 
         const LOGO_MARGIN_PERCENTAGE = 5;
     
@@ -54,7 +55,7 @@ function generateCopy(file) {
     
         main().then(image => { 
             const copyFileName = 'copy-' + file.filename;
-            image.write('./src/images/' + copyFileName);
+            image.write(filesUrl + 'users/' + copyFileName);
             resolve(copyFileName);
         }).catch((error) => {
             console.log(error);
