@@ -214,5 +214,34 @@ app.delete('/temporarly/:ownerId', [mdAuth, mdImageOwner], (req, res) => {
     })
 })
 
+app.put('/restore/:ownerId', [mdAuth, mdImageOwner], (req, res) => {
+    const imageId = req.body.imageId;
+
+    Image.findById(imageId, (err, imageDB) => {
+        if(err) {
+            return res.status(500).json({
+                ok: false,
+                error: err
+            })
+        }
+
+        imageDB.status = 'visible';
+
+        imageDB.update(imageDB, (errUpdt, imageUpdated) => {
+            if(errUpdt) {
+                return res.status(500).json({
+                    ok: false,
+                    error: errUpdt
+                })
+            }
+
+            return res.status(200).json({
+                ok: true,
+                message: 'Imagen restaurada correctamente'
+            })
+        })
+    })
+})
+
 
 module.exports = app;
