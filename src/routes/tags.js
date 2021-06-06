@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 
 const Tag = require('../models/tag');
+const updateTag = require('../config/functions').updateTag;
 
 const mdAuth = require('../middlewares/auth').verifyToken;
 const mdRole = require('../middlewares/role').verifyRole;
@@ -78,6 +79,7 @@ app.post('/:userId', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE']), mdSam
             })
         }
 
+        body.imagesLinked = [];
         const tag = new Tag(body);
         tag.save((err, tagSaved) => {
             if(err) {
@@ -97,6 +99,31 @@ app.post('/:userId', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE']), mdSam
     })
 
     
+})
+
+app.put('/update/:userId', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE']), mdSameUser], (req, res) => {
+    const tags = req.body.tags;
+    const imagesLinked = req.body.imagesLinked;
+
+    const promisesArray = [];
+
+    tags.forEach(tag => {
+        promisesArray.push(updateTag(tag, imagesLinked));
+    });
+
+    Promise.all(promisesArray)
+        .then(() => {
+            return res.status(200).json({
+                ok: true
+            })
+        })
+        .catch((errors) => {
+            console.log(errors);
+
+            return res.status(500).json({
+                ok: false
+            })
+        })
 })
 
 app.delete('/:userId', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE']), mdSameUser], (req, res) => {

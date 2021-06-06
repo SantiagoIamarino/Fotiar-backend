@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const tagSchema = new Schema({
     creatorId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    imagesLinkedAmount: { type: Number, default: 0 },
+    imagesLinked: { type: Array, default: [] },
     value: { type: String, required: true } 
 });
 

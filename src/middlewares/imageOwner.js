@@ -4,7 +4,7 @@
 //==========================================
 
 module.exports.verifyOwner = function( req, res, next ){
-    const ownerId = req.params.ownerId;
+    const ownerId = (req.params.ownerId) ? req.params.ownerId : req.query.ownerId;
 
     if(req.user._id !== ownerId && req.user.role !== 'ADMIN_ROLE') {
         return res.status(401).json({
