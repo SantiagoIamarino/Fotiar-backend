@@ -124,6 +124,8 @@ app.post('/search/admin', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE'])],
     })
 })
 
+let contentToRetrive = 'creationDate ownerId exifData tags copyFileName photographerId status uploadDate _id';
+
 app.post('/search/client', (req, res) => {
     const filters = req.body.filters;
     const pagination = req.body.pagination;
@@ -147,7 +149,12 @@ app.post('/search/client', (req, res) => {
 
     const mongooseFilters = {
         status: 'visible',
-        $and: dateFilter
+        $and: dateFilter,
+        tags: { $all: filters.tags }
+    }
+
+    if(filters.tags.length <= 0) {
+        delete mongooseFilters.tags;
     }
 
     if(!filters.date.to && !filters.date.from) {
@@ -167,7 +174,7 @@ app.post('/search/client', (req, res) => {
         const limit = pagination.perPage;
         const skip = (pagination.actualPage * pagination.perPage) - pagination.perPage;
 
-        Image.find(mongooseFilters)
+        Image.find(mongooseFilters, contentToRetrive)
             .populate('ownerId')
             .skip(skip)
             .limit(limit)

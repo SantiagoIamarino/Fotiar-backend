@@ -8,6 +8,29 @@ const mdAuth = require('../middlewares/auth').verifyToken;
 const mdRole = require('../middlewares/role').verifyRole;
 const mdSameUser = require('../middlewares/sameUser').verifyUser;
 
+
+app.get('/', (req, res) => {
+    const limit = 10;
+
+    Tag.find({})
+        .populate('creatorId')
+        .sort([['imagesLinked', -1]])
+        .limit(limit)
+        .exec((err, tags) => {
+            if(err) {
+                return res.status(500).json({
+                    ok: false,
+                    error: err
+                })
+            }
+
+            return res.status(200).json({
+                ok: true, 
+                tags
+            })
+        })
+})
+
 app.post('/search', (req, res) => {
     const filter = new RegExp( req.body.filter, 'i' );
     const current = req.body.currentTags; // Tags that will not show
