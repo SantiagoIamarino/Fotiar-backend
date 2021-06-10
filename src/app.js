@@ -30,6 +30,7 @@ const filesRoutes =  require('./routes/files');
 const imagesRoutes =  require('./routes/images');
 const tagsRoutes =  require('./routes/tags');
 const parametersRoutes =  require('./routes/parameters');
+const cartRoutes =  require('./routes/cart');
 
 // DB connection
 // mongoose.connection.openUri('mongodb://localhost:27017/FOTIARDB', (err, res) => {
@@ -48,6 +49,7 @@ app.use('/files', filesRoutes);
 app.use('/images', imagesRoutes);
 app.use('/tags', tagsRoutes);
 app.use('/parameters', parametersRoutes);
+app.use('/cart', cartRoutes);
 
 
 // Listen port 3000

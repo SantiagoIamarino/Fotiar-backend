@@ -7,7 +7,7 @@ const mdAuth = require('../middlewares/auth').verifyToken;
 const mdRole = require('../middlewares/role').verifyRole;
 
 
-app.get('/', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
+app.get('/', mdAuth, (req, res) => {
     Parameters.findOne({}, (err, parametersDB) => {
         if(err) {
             return res.status(500).json({
