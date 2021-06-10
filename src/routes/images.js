@@ -150,11 +150,16 @@ app.post('/search/client', (req, res) => {
     const mongooseFilters = {
         status: 'visible',
         $and: dateFilter,
-        tags: { $all: filters.tags }
+        tags: { $all: filters.tags },
+        _id: { $in: filters.favorites }
     }
 
     if(filters.tags.length <= 0) {
         delete mongooseFilters.tags;
+    }
+
+    if(filters.favorites.length <= 0) {
+        delete mongooseFilters._id;
     }
 
     if(!filters.date.to && !filters.date.from) {

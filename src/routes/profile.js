@@ -7,7 +7,7 @@ const mdSameUser = require('../middlewares/sameUser').verifyUser;
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 
-const contentToRetrive = '_id role email username name';
+const contentToRetrive = '_id role email username name favorites';
 
 app.get('/:userId', [mdAuth, mdSameUser], (req, res) => {
     const userId = req.params.userId;
@@ -75,6 +75,10 @@ app.put('/:userId', [mdAuth, mdSameUser], (req, res) => {
 
        if(body.password) {
            userDB.password = bcrypt.hashSync(body.password, 10);
+       }
+
+       if(body.favorites) {
+           userDB.favorites = body.favorites;
        }
 
        checkEmail(body.email, userDB.email).then((newEmail) => {
