@@ -44,6 +44,32 @@ app.get('/image-copy/:imageId', (req, res) => {
     
 });
 
+app.get('/image-detail/:imageId', mdAuth, (req, res) => {
+    const imageId = req.params.imageId;
+    const contentToRetrive = '_id copyFileName creationDate photographerId tags'
+
+    Image.findById(imageId, (err, imageDB) => {
+        if(err) {
+            return res.status(500).json({
+                ok: false,
+                error: err
+            })
+        }
+
+        if(!imageDB) {
+            return res.status(400).json({
+                ok: false,
+                error: 'Imagen no encontrada'
+            })
+        }
+
+        return res.status(200).json({
+            ok: true,
+            image: imageDB
+        })
+    })
+})
+
 app.post('/search/admin', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE'])], (req, res) => {
     const filters = req.body.filters;
     const pagination = req.body.pagination;
