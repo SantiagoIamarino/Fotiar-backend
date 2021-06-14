@@ -173,18 +173,26 @@ app.post('/search/client', (req, res) => {
         ];
     }
 
+    const idFilter = filters.favorites;
+    
+    filters.myImages.forEach(imageId => {
+        if(idFilter.indexOf(imageId) < 0) {
+            idFilter.push(imageId);
+        }
+    });
+
     const mongooseFilters = {
         status: 'visible',
         $and: dateFilter,
         tags: { $all: filters.tags },
-        _id: { $in: filters.favorites }
+        _id: { $in: idFilter }
     }
 
     if(filters.tags.length <= 0) {
         delete mongooseFilters.tags;
     }
 
-    if(filters.favorites.length <= 0) {
+    if(idFilter.length <= 0) {
         delete mongooseFilters._id;
     }
 
