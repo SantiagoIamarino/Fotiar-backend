@@ -1,4 +1,6 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
+const jwtKey = require('../config/vars').jwtKey;
 
 const mdAuth = require('../middlewares/auth').verifyToken;
 const mdRole = require('../middlewares/role').verifyRole;
@@ -61,6 +63,33 @@ function updateUserCart(user) {
     })
 }
 
+function getTokenExpiration() {
+    const daysToExpire = 3;
+    const expiration = 1000 * 60 * 60 * 24 * daysToExpire; // three days in ms
+
+    const tokenExpiration = new Date().getTime() + expiration;
+
+    return tokenExpiration;
+}
+
+function createUserToken(user) {
+    return new Promise((resolve, reject) => {
+        const payload = {
+            check: true,
+            user
+        }
+    
+        const token = jwt.sign(payload, jwtKey, {
+            expiresIn: "3d"
+        });
+
+        resolve( {
+            token,
+            tokenExp: getTokenExpiration()
+        })
+    })
+}
+
 function createOrder(data, user, orderId) {
     return new Promise((resolve, reject) => {
         const order = new Order({
@@ -85,10 +114,13 @@ function createOrder(data, user, orderId) {
                 try {
                     await updateUserPurchases(user);
                     await updateUserCart(user);
+                    const tokenData = await createUserToken(user);
 
                     resolve({
                         order: orderSaved,
-                        userPurchases: user.purchases
+                        userPurchases: user.purchases,
+                        token: tokenData.token,
+                        tokenExp: tokenData.tokenExp
                     })
 
                 } catch (error) {
@@ -123,7 +155,9 @@ app.post('/mercadopago/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], 
                     return res.status(201).json({
                         ok: true,
                         order: orderRes.order,
-                        userPurchases: orderRes.userPurchases
+                        userPurchases: orderRes.userPurchases,
+                        token: orderRes.token,
+                        tokenExp: orderRes.tokenExp
                     })
                 })
                 .catch((error) => {

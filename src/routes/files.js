@@ -1,8 +1,13 @@
 const express = require('express');
 const multer = require('multer');
 
+const mdAuth = require('../middlewares/auth').verifyToken;
+const mdImageOwner = require('../middlewares/imageOwner').verifyOwner;
+
 const Jimp = require("jimp");
+const path = require('path');
 const filesUrl = require('../config/vars').filesPath;
+const fs = require('fs');
 
 const app = express();
 
@@ -96,6 +101,19 @@ app.post('/', (req, res) => {
         })
     })
 })
+
+app.get('/download/:filename', [mdAuth, mdImageOwner], (req, res) => {
+    const { filename } = req.params;
+    const fullFilePath = path.join(filesUrl, 'users/' + filename);
+    const defaultImagePath = path.join(filesUrl, 'default.png');
+
+    if(fs.existsSync(fullFilePath)) {
+        return res.download(fullFilePath);
+    } else {
+        return res.download(defaultImagePath);
+    }
+    
+});
 
 
 module.exports = app;
