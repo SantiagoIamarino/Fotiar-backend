@@ -6,6 +6,7 @@ const jwtKey = require('../config/vars').jwtKey;
 const bcrypt = require('bcrypt');
 
 const User = require('../models/user');
+const Order = require('../models/order');
 
 function loginUser(user, password) {
     return new Promise((resolve, reject) => {
@@ -39,6 +40,43 @@ function getTokenExpiration() {
     const tokenExpiration = new Date().getTime() + expiration;
 
     return tokenExpiration;
+}
+
+function validatePurchases(user) {
+    return new Promise((resolve, reject) => {
+        Order.find({userId: user._id}, (err, ordersDB) => {
+            if(err) {
+                reject(err);
+            }
+
+            if(!ordersDB) {
+                resolve(user);
+            }
+
+            let oldPurchases = user.purchases;
+            user.purchases = [];
+
+            ordersDB.forEach(order => {
+                order.images.forEach(image => {
+                    if(user.purchases.indexOf(image.imageId._id) < 0) {
+                        user.purchases.push(image.imageId._id);
+                    }
+                });
+            });
+
+            if(oldPurchases.length == user.purchases.length) {
+                resolve(user);
+            }
+
+            User.findByIdAndUpdate(user._id, user, (errUpdt, userUpdated) => {
+                if(errUpdt) {
+                    reject(errUpdt);
+                }
+
+                resolve(userUpdated);
+            })
+        })
+    })   
 }
 
 app.post('/register', (req, res) => {
@@ -116,7 +154,7 @@ app.post('/login', (req, res) => {
 
     User.findOne({
         $or: [ {email: body.emailOrAlias}, {username: body.emailOrAlias} ]
-    }).exec((err, userDB) => {
+    }).exec(async (err, userDB) => {
         if(err) {
             return res.status(500).json({
                 ok: false,
@@ -130,6 +168,8 @@ app.post('/login', (req, res) => {
                 message: 'No existe un usuario registrado con ese email/alias'
             })
         }
+
+        userDB = await validatePurchases(userDB);
 
         loginUser(userDB, body.password)
             .then((token) => {

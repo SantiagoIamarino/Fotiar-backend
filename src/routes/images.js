@@ -175,12 +175,14 @@ app.post('/search/client', (req, res) => {
 
     const idFilter = filters.favorites;
     
-    filters.myImages.forEach(imageId => {
-        if(idFilter.indexOf(imageId) < 0) {
-            idFilter.push(imageId);
-        }
-    });
-
+    if(filters.myImages) {
+        filters.myImages.forEach(imageId => {
+            if(idFilter.indexOf(imageId) < 0) {
+                idFilter.push(imageId);
+            }
+        });
+    }
+    
     const mongooseFilters = {
         status: 'visible',
         $and: dateFilter,
