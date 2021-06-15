@@ -173,14 +173,20 @@ app.post('/search/client', (req, res) => {
         ];
     }
 
-    const idFilter = filters.favorites;
+    let idFilter = [];
     
-    if(filters.myImages) {
-        filters.myImages.forEach(imageId => {
-            if(idFilter.indexOf(imageId) < 0) {
-                idFilter.push(imageId);
-            }
-        });
+    if(filters.purchases.active && filters.favorites.active) { //Both filters
+        idFilter = filters.purchases.images.filter((imageId) => {
+            return filters.favorites.images.indexOf(imageId) >= 0;
+        })
+    } else {
+        if(filters.purchases.active) {
+            idFilter = filters.purchases.images;
+        }
+    
+        if(filters.favorites.active) {
+            idFilter = filters.favorites.images;
+        }
     }
     
     const mongooseFilters = {
