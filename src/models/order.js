@@ -10,7 +10,7 @@ const orderSchema = new Schema({
     establishment: { type: String, default: 'web' }, // Cerro/web
     status: { type: String, default: 'completed' }, // completed/pending/cancelled
     orderDate: { type: Date, default: new Date() },
-    paymentDate: { type: Date, default: new Date() },
+    paymentDate: { type: Date, default: null },
     paymentMethod: { type: String, default: 'mercadopago' }, // mercadopago/cashier
     observation: { type: String },
 });

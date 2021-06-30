@@ -90,15 +90,25 @@ function createUserToken(user) {
     })
 }
 
-function createOrder(data, user, orderId) {
+function createOrder(data, user, orderId = null) {
     return new Promise((resolve, reject) => {
-        const order = new Order({
+        const orderData = {
             images: data.products,
             totalAmount: data.total,
             userId: user._id,
             userEmail: data.email,
-            orderId
-        })
+            orderId: (orderId) ? orderId : new Date().getTime(),
+            status: (data.paymentOption == 'mercadopago') ? 'completed' : 'pending',
+            paymentMethod: data.paymentOption
+        }
+
+        if(data.paymentOption == 'mercadopago') {
+            const now = new Date();
+            orderData.paymentDate = now;
+            orderData.orderDate = now;
+        }
+
+        const order = new Order(orderData);
     
         order.save(async (err, orderSaved) => {
             if(err) {
@@ -112,16 +122,24 @@ function createOrder(data, user, orderId) {
                 });
 
                 try {
-                    await updateUserPurchases(user);
                     await updateUserCart(user);
-                    const tokenData = await createUserToken(user);
+                    
+                    if(data.paymentOption == 'mercadoPago' && orderId) {
+                        await updateUserPurchases(user);
+                        const tokenData = await createUserToken(user);
 
-                    resolve({
-                        order: orderSaved,
-                        userPurchases: user.purchases,
-                        token: tokenData.token,
-                        tokenExp: tokenData.tokenExp
-                    })
+                        resolve({
+                            order: orderSaved,
+                            userPurchases: user.purchases,
+                            token: tokenData.token,
+                            tokenExp: tokenData.tokenExp
+                        })
+                    } else {
+                        resolve({
+                            order: orderSaved
+                        })
+                    }
+                    
 
                 } catch (error) {
                     reject(error)
@@ -182,6 +200,26 @@ app.post('/mercadopago/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], 
                 error
             });
         });
+})
+
+app.post('/cashier/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], async (req, res) => {
+    const userToUpdate = await getUser(req.user._id);
+
+    createOrder(req.body, userToUpdate).then((orderRes) => {
+        return res.status(201).json({
+            ok: true,
+            order: orderRes.order,
+            userPurchases: orderRes.userPurchases,
+            token: orderRes.token,
+            tokenExp: orderRes.tokenExp
+        })
+    })
+    .catch((error) => {
+        return res.status(400).json({
+            ok: false,
+            error
+        })
+    })
 })
 
 module.exports = app;
