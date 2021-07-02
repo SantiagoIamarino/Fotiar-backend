@@ -46,7 +46,7 @@ app.get('/image-copy/:imageId', (req, res) => {
 
 app.get('/image-detail/:imageId', mdAuth, (req, res) => {
     const imageId = req.params.imageId;
-    const contentToRetrive = '_id copyFileName creationDate photographerId tags'
+    const contentToRetrive = '_id copyFileName creationDate photographerId tags exifData'
 
     Image.findById(imageId, contentToRetrive, (err, imageDB) => {
         if(err) {

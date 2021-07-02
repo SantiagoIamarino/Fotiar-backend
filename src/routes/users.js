@@ -7,12 +7,13 @@ const jwtKey = require('../config/vars').jwtKey;
 
 const mdAuth = require('../middlewares/auth').verifyToken;
 const mdRole = require('../middlewares/role').verifyRole;
+const mdSameUserOrAdmin = require('../middlewares/sameUser').verifyUser;
 
 const User = require('../models/user');
 
-const contentToRetrieve = 'name username email createdAt role favorites purchases purchasesNetAmount observation';
+const contentToRetrieve = 'name username email createdAt role registerMethod favorites purchases purchasesNetAmount observation';
 
-app.get('/get-user/:userId', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
+app.get('/get-user/:userId', [mdAuth, mdSameUserOrAdmin], (req, res) => {
     const userId = req.params.userId;
 
     User.findById(userId, contentToRetrieve, (err, userDB) => {
@@ -30,8 +31,18 @@ app.get('/get-user/:userId', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
             })
         }
 
+        const payload = {
+            check: true,
+            user: userDB
+        }
+    
+        const token = jwt.sign(payload, jwtKey, {
+            expiresIn: "3d"
+        });
+
         return res.status(200).json({
             ok: true,
+            token,
             user: userDB
         })
     })
