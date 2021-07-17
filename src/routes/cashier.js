@@ -3,6 +3,7 @@ const app = express();
 
 const Order = require('../models/order');
 const User = require('../models/user');
+const Image = require('../models/image');
 
 const mdAuth = require('../middlewares/auth').verifyToken;
 const mdRole = require('../middlewares/role').verifyRole;
@@ -76,10 +77,31 @@ app.post('/get-orders', [mdAuth, mdRole(['ADMIN_ROLE', 'CASHIER_ROLE'])], (req, 
     })
 } )
 
+async function getImages(images) {
+    return new Promise((resolve, reject) => {
+        const imagesId = [];
+
+        images.forEach(image => {
+            if(imagesId.indexOf(image.imageId._id) < 0) {
+                imagesId.push(image.imageId._id);
+            }
+        });
+    
+        Image.find({ _id: { $in: imagesId } }, (err, imagesFound) => {
+            if(err) {
+                reject(error);
+            }
+    
+            resolve(imagesFound);
+        })
+    })
+    
+}
+
 app.post('/mark-as-payed/:orderId', [mdAuth, mdRole(['ADMIN_ROLE', 'CASHIER_ROLE'])], (req, res) => {
     const orderId = req.params.orderId;
 
-    Order.findById(orderId, (err, orderDB) => {
+    Order.findById(orderId, async (err, orderDB) => {
         if(err) {
             return res.status(500).json({
                 ok: false,
@@ -96,6 +118,7 @@ app.post('/mark-as-payed/:orderId', [mdAuth, mdRole(['ADMIN_ROLE', 'CASHIER_ROLE
 
         orderDB.status = 'completed';
         orderDB.paymentDate = new Date();
+        orderDB.images = await getImages(orderDB.images);
 
         orderDB.update(orderDB, (errUpdt, orderUpdated) => {
             if(errUpdt) {
@@ -122,7 +145,7 @@ app.post('/mark-as-payed/:orderId', [mdAuth, mdRole(['ADMIN_ROLE', 'CASHIER_ROLE
                 }
 
                 orderDB.images.forEach(image => {
-                    const imageId = image.imageId._id;
+                    const imageId = image._id;
                     
                     if(userDB.purchases.indexOf(imageId) < 0) {
                         userDB.purchases.push(imageId);

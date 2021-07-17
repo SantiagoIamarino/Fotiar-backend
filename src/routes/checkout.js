@@ -9,6 +9,7 @@ const mdSameUser = require('../middlewares/sameUser').verifyUser;
 const Order = require('../models/order');
 const User = require('../models/user');
 const Cart = require('../models/cart');
+const Image = require('../models/image');
 
 var mercadopago = require('mercadopago');
 mercadopago.configurations.setAccessToken("TEST-2250573947337888-111301-a3d1541cf8e11603c5f12f1998b40338-222073650");
@@ -90,16 +91,58 @@ function createUserToken(user) {
     })
 }
 
-function createOrder(data, user, orderId = null) {
+async function getImages(images) {
     return new Promise((resolve, reject) => {
+        const imagesId = [];
+
+        images.forEach(image => {
+            if(imagesId.indexOf(image.imageId._id) < 0) {
+                imagesId.push(image.imageId._id);
+            }
+        });
+    
+        Image.find({ _id: { $in: imagesId } }, (err, imagesFound) => {
+            if(err) {
+                reject(error);
+            }
+    
+            resolve(imagesFound);
+        })
+    })
+    
+}
+
+function getPhotographers(images) {
+    const photographers = [];
+    // It will return the photographers that had uploaded these images
+    images.forEach(image => {
+        const photographerId = image.imageId.photographerId;
+
+        if(photographers.indexOf(photographerId) < 0) {
+            photographers.push(photographerId);
+        }
+    });
+
+    return photographers;
+}
+
+function createOrder(data, user, orderId = null) {
+    return new Promise(async (resolve, reject) => {
+        let images = data.products;
+
+        if(data.paymentOption == 'mercadopago') {
+            images = await getImages(data.products);
+        }
+        
         const orderData = {
-            images: data.products,
+            images,
             totalAmount: data.total,
             userId: user._id,
             userEmail: data.email,
             orderId: (orderId) ? orderId : new Date().getTime(),
             status: (data.paymentOption == 'mercadopago') ? 'completed' : 'pending',
-            paymentMethod: data.paymentOption
+            paymentMethod: data.paymentOption,
+            photographers: getPhotographers(data.products)
         }
 
         if(data.paymentOption == 'mercadopago') {
