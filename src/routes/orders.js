@@ -68,7 +68,7 @@ app.post('/search', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE'])], (req,
         userEmail: new RegExp( filters.email, 'i' ),
         status: filters.status,
         $and: dateFilter,
-        photographers: { $all: [req.user.email] }
+        photographers: { $all: [req.user.email] } // Only photographer images
     }
 
     if(!mongooseFilters.userEmail || req.user.role !== 'ADMIN_ROLE') {
@@ -96,8 +96,6 @@ app.post('/search', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE'])], (req,
     if(filters.order.by) {
         sortFilter = [[filters.order.by, filters.order.order]];
     }
-
-    console.log(mongooseFilters);
 
     Order.count(mongooseFilters, (errCount, total) => {
         if(errCount) {
