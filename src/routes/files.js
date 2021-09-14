@@ -37,13 +37,13 @@ function generateCopy(file) {
                 Jimp.read(LOGO)
             ]);
     
-            logo.resize(image.bitmap.width / 8, Jimp.AUTO);
+            logo.resize(image.bitmap.width, Jimp.AUTO);
     
             const xMargin = (image.bitmap.width * LOGO_MARGIN_PERCENTAGE) / 100;
             const yMargin = (image.bitmap.width * LOGO_MARGIN_PERCENTAGE) / 100;
     
-            const X = image.bitmap.width - logo.bitmap.width - xMargin;
-            const Y = image.bitmap.height - logo.bitmap.height - yMargin;
+            const X = 0;
+            const Y = 0;
     
             return image
                 .composite(logo, X, Y, [{
