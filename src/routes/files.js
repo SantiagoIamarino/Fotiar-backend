@@ -25,6 +25,34 @@ let uploadFile = multer({
     storage: storage,
 }).single("uploads");
 
+function getNewImageSizes(image, orientation) {
+    const originalSizes = image.bitmap;
+    let sizes = {
+        height: originalSizes.height,
+        width: originalSizes.width
+    }
+
+    if(orientation == 1) { // Horizontal
+        if(originalSizes.width <= 1000) {
+            return sizes;
+        }
+
+        sizes.width = (originalSizes.width / (originalSizes.width / 1000));
+        sizes.height = (originalSizes.height / (originalSizes.width / 1000));
+
+    } else { // Vertical
+        if(originalSizes.height <= 600) {
+            return sizes;
+        }
+
+        sizes.width = (originalSizes.width / (originalSizes.height / 600));
+        sizes.height = (originalSizes.height / (originalSizes.height / 600));
+    }
+
+
+    return sizes;
+}
+
 function generateCopy(file) {
     return new Promise((resolve, reject) => {
         const LOGO = filesUrl + "logo.png";
@@ -36,14 +64,20 @@ function generateCopy(file) {
                 Jimp.read(file.path),
                 Jimp.read(LOGO)
             ]);
-    
-            logo.resize(image.bitmap.width, Jimp.AUTO);
-    
-            const xMargin = (image.bitmap.width * LOGO_MARGIN_PERCENTAGE) / 100;
-            const yMargin = (image.bitmap.width * LOGO_MARGIN_PERCENTAGE) / 100;
+
+            const orientation = (image?._exif?.tags?.Orientation) ? image._exif.tags.Orientation : 1;
+            
+            if(orientation == 1) {
+                logo.resize(image.bitmap.width, Jimp.AUTO);
+            } else {
+                logo.resize(Jimp.AUTO, image.bitmap.height);
+            }
     
             const X = 0;
             const Y = 0;
+
+            const sizes = getNewImageSizes(image, orientation);
+            const rotation = (orientation == 8) ? 270 : 0;
     
             return image
                 .composite(logo, X, Y, [{
@@ -51,11 +85,12 @@ function generateCopy(file) {
                     opacitySource: 0.1,
                     opacityDest: 1
                 }])
-                .quality(30)
+                .quality(40)
                 .resize(
-                    Math.round(image.bitmap.width / 10),
-                    Math.round(image.bitmap.height / 10)
-                );
+                    Math.round(sizes.width),
+                    Math.round(sizes.height)
+                )
+                .rotate(rotation);
         };
     
         main().then(image => { 

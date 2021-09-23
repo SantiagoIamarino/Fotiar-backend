@@ -275,10 +275,31 @@ function getPromisesArray(imageDB, remove = false) {
     return promisesArray;
 }
 
+function deleteImageFiles(image) {
+    return new Promise((resolve, reject) => {
+        const fileName = image.fileName;
+        const copyFileName = image.copyFileName;
+
+        let fullFilePath = path.join(filesUrl, 'users/' + fileName);
+    
+        if(fs.existsSync(fullFilePath)) {
+            fs.unlinkSync(fullFilePath);
+        }
+
+        fullFilePath = path.join(filesUrl, 'users/' + copyFileName);
+    
+        if(fs.existsSync(fullFilePath)) {
+            fs.unlinkSync(fullFilePath);
+        }
+
+        resolve();
+    })
+}
+
 app.delete('/:imageId', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
     const imageId = req.params.imageId;
 
-    Image.findByIdAndDelete(imageId, (err, imageDeleted) => {
+    Image.findById(imageId, async (err, imageDB) => {
         if(err) {
             return res.status(500).json({
                 ok: false,
@@ -286,11 +307,22 @@ app.delete('/:imageId', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
             })
         }
 
-        // await Promise.all(getPromisesArray(imageDB, true));
+        await deleteImageFiles(imageDB);
 
-        return res.status(200).json({
-            ok: true,
-            message: 'Imagen eliminada correctamente'
+        imageDB.delete((errDlt, imageDeleted) => {
+
+            if(errDlt) {
+                return res.status(500).json({
+                    ok: false,
+                    error: errDlt
+                })
+            }
+
+            return res.status(200).json({
+                ok: true,
+                message: 'Imagen eliminada correctamente'
+            })
+
         })
     })
 })
