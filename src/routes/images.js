@@ -309,7 +309,7 @@ app.delete('/:imageId', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
 
         await deleteImageFiles(imageDB);
 
-        imageDB.delete((errDlt, imageDeleted) => {
+        imageDB.delete(async (errDlt, imageDeleted) => {
 
             if(errDlt) {
                 return res.status(500).json({
@@ -317,6 +317,8 @@ app.delete('/:imageId', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
                     error: errDlt
                 })
             }
+
+            await Promise.all(getPromisesArray(imageDB, true));
 
             return res.status(200).json({
                 ok: true,

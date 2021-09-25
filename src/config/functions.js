@@ -1,6 +1,13 @@
 const Tag = require('../models/tag');
 
 module.exports = {
+    /*
+
+        Busca dentro de un tag que imagenes ya fueron linkeadas
+        Si no fue agregada se agrega
+        Si el parametro remove es == true, si ya esta agregada la remueve
+
+    */ 
     updateTag: function (tagValue, images, remove = false) {
         return new Promise((resolve, reject) => {
             Tag.findOne({value: tagValue}, (err, tagDB) => {
