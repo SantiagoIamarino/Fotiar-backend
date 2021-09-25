@@ -99,7 +99,7 @@ app.post('/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], (req, res) =
 
 app.delete('/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], (req, res) => {
     const userId = req.params.userId;
-    const imageId = req.query.imageId;
+    const itemId = req.query.itemId;
 
     Cart.findOne({userId}, async (err, cartDB) => {
         if(err) {
@@ -116,7 +116,7 @@ app.delete('/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], (req, res)
             })
         }
 
-        const productExist = cartDB.products.findIndex((product) => product.imageId == imageId);
+        const productExist = cartDB.products.findIndex((product) => product._id == itemId);
 
         if(productExist < 0) {
             return res.status(400).json({
