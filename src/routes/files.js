@@ -77,7 +77,6 @@ function generateCopy(file) {
             const Y = 0;
 
             const sizes = getNewImageSizes(image, orientation);
-            const rotation = (orientation == 8) ? 270 : 0;
     
             return image
                 .composite(logo, X, Y, [{
@@ -89,8 +88,7 @@ function generateCopy(file) {
                 .resize(
                     Math.round(sizes.width),
                     Math.round(sizes.height)
-                )
-                .rotate(rotation);
+                );
         };
     
         main().then(image => { 
