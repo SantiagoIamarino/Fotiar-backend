@@ -65,7 +65,7 @@ function generateCopy(file) {
                 Jimp.read(LOGO)
             ]);
 
-            const orientation = (image?._exif?.tags?.Orientation) ? image._exif.tags.Orientation : 1;
+            const orientation = (image._exif.tags.Orientation) ? image._exif.tags.Orientation : 1;
             
             if(orientation == 1) {
                 logo.resize(image.bitmap.width, Jimp.AUTO);
