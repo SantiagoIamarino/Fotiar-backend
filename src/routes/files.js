@@ -66,7 +66,6 @@ function generateCopy(file) {
             ]);
 
             const orientation = (image._exif.tags.Orientation) ? image._exif.tags.Orientation : 1;
-            
             if(orientation == 1) {
                 logo.resize(image.bitmap.width, Jimp.AUTO);
             } else {
@@ -77,7 +76,6 @@ function generateCopy(file) {
             const Y = 0;
 
             const sizes = getNewImageSizes(image, orientation);
-    
             return image
                 .composite(logo, X, Y, [{
                     mode: Jimp.BLEND_SCREEN,
@@ -105,7 +103,6 @@ function generateCopy(file) {
 
 
 app.post('/', (req, res) => {
-
     uploadFile(req, res, (err) => {
         if(err) {
             return res.status(500).json({
@@ -115,7 +112,6 @@ app.post('/', (req, res) => {
         }
 
         const fileName = req.file.filename;
-
         generateCopy(req.file).then((copyFileName) => {
             return res.status(200).json({
                 ok: true,

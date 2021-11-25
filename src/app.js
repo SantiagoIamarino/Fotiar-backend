@@ -35,9 +35,21 @@ const checkoutRoutes =  require('./routes/checkout');
 const cashierRoutes =  require('./routes/cashier');
 const ordersRoutes =  require('./routes/orders');
 
+const dotenv = require('dotenv');
+dotenv.config();
+
+const {
+    MONGO_USERNAME,
+    MONGO_PASSWORD,
+    MONGO_HOSTNAME,
+    MONGO_PORT,
+    MONGO_DB
+} = process.env;
+
 // DB connection
+const url = `mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOSTNAME}:${MONGO_PORT}/${MONGO_DB}`;
 // mongoose.connection.openUri('mongodb://localhost:27017/FOTIARDB', (err, res) => {
-mongoose.connection.openUri('mongodb://Server:Fotiar_Sistemas12@127.0.0.1:27017/FotiarDB', (err, res) => {
+mongoose.connection.openUri(url, (err, res) => {
     if (err) throw err;
 
     console.log('Database running fine!');
