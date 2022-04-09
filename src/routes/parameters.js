@@ -31,7 +31,7 @@ app.get('/', mdAuth, (req, res) => {
 })
 
 app.put('/', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
-    Parameters.findOne({}, (err, parametersDB) => {
+    Parameters.findOne({}, async (err, parametersDB) => {
         if(err) {
             return res.status(500).json({
                 ok: false,
@@ -40,9 +40,22 @@ app.put('/', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
         }
 
         if(!parametersDB) {
-            return res.status(500).json({
-                ok: false,
-                error: "Parameters not found"
+            const parameter = new Parameters({
+                unityPrice: req.body.unityPrice
+            });
+
+            const { errSave , parameterSaved } = await parameter.save();
+
+            if(errSave) {
+                return res.status(500).json({
+                    ok: false,
+                    error: errSave
+                })
+            }
+
+            return res.status(200).json({
+                ok: true,
+                message: 'Parametros actualizados correctamente'
             })
         }
 
