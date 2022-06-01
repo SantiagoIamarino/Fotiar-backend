@@ -108,13 +108,12 @@ app.post('/register', (req, res) => {
 
             loginUser(userSaved, password)
                 .then((token) => {
-                    userSaved.password = '';
-                    const tokenExpiration = getTokenExpiration();
+                    userSaved.password = '';;
 
                     return res.status(200).json({
                         user: userSaved,
-                        token,
-                        tokenExpiration
+                        token: token.token,
+                        tokenExpiration: token.tokenExp
                     })
                 })
                 .catch((error) => {
@@ -161,12 +160,11 @@ app.post('/login', (req, res) => {
         loginUser(userDB, body.password)
             .then((token) => {
                 userDB.password = '';
-                const tokenExpiration = getTokenExpiration();
 
                 return res.status(200).json({
                     user: userDB,
-                    token,
-                    tokenExpiration
+                    token: token.token,
+                    tokenExpiration: token.tokenExp
                 })
             })
             .catch((error) => {
@@ -209,12 +207,11 @@ app.post('/login-social', (req, res) => {
         loginUser(userDB, body.method + '-account')
             .then((token) => {
                 userDB.password = '';
-                const tokenExpiration = getTokenExpiration();
 
                 return res.status(200).json({
                     user: userDB,
-                    token,
-                    tokenExpiration
+                    token: token.token,
+                    tokenExpiration: token.tokenExp
                 })
             })
             .catch((error) => {
