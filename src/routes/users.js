@@ -8,12 +8,38 @@ const jwtKey = require('../config/vars').jwtKey;
 const mdAuth = require('../middlewares/auth').verifyToken;
 const mdRole = require('../middlewares/role').verifyRole;
 const mdSameUserOrAdmin = require('../middlewares/sameUser').verifyUser;
+const { checkEmail } = require('../aux/usersAux');
 
 const User = require('../models/user');
 
 const contentToRetrieve = 'name username email createdAt role registerMethod favorites purchases purchasesNetAmount observation';
 
 app.get('/get-user/:userId', [mdAuth, mdSameUserOrAdmin], (req, res) => {
+    const userId = req.params.userId;
+    
+    User.findById(userId, contentToRetrieve, (err, userDB) => {
+        if(err) {
+            return res.status(500).json({
+                ok: false,
+                error: err
+            })
+        }
+
+        if(!userDB) {
+            return res.status(400).json({
+                ok: false,
+                message: 'Usuario no encontrado'
+            })
+        }
+
+        return res.status(200).json({
+            ok: true,
+            user: userDB
+        })
+    })
+})
+
+app.get('/refresh-user/:userId', [mdAuth, mdSameUserOrAdmin], (req, res) => {
     const userId = req.params.userId;
 
     User.findById(userId, contentToRetrieve, (err, userDB) => {
@@ -143,26 +169,6 @@ app.post('/', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
         })
     })
 })
-
-function checkEmail(newEmail, lastEmail) {
-    return new Promise((resolve, reject) => {
-        if(newEmail && newEmail !== lastEmail) {
-            User.findOne({email: newEmail}, (errFind, userFound) => {
-                if(userFound) {
-                    reject({
-                        ok: false,
-                        message: 'El email indicado ya se encuentra en uso'
-                    });
-                }
-    
-                resolve(newEmail);
-            })
-        } else {
-            resolve(lastEmail);
-        }
-    })
-    
-}
 
 app.put('/:userId', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
     const userId = req.params.userId;

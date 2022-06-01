@@ -8,6 +8,8 @@ const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const Order = require('../models/order');
 
+const { createUserToken, getTokenExpiration } = require('../aux/authAux')
+
 function loginUser(user, password) {
     return new Promise((resolve, reject) => {
         if(!bcrypt.compareSync(password, user.password)) {
@@ -19,29 +21,14 @@ function loginUser(user, password) {
 
         user.password = '';
 
-        const payload = {
-            check: true,
-            user
-        }
-
-        const token = jwt.sign(payload, jwtKey, {
-            expiresIn: "3d"
-        });
+        const token = createUserToken(user)
 
         resolve(token);
     })
     
 }
 
-function getTokenExpiration() {
-    const daysToExpire = 3;
-    const expiration = 1000 * 60 * 60 * 24 * daysToExpire; // three days in ms
-
-    const tokenExpiration = new Date().getTime() + expiration;
-
-    return tokenExpiration;
-}
-
+// Verifies that orders collection has the same information that the user node
 function validatePurchases(user) {
     return new Promise((resolve, reject) => {
         Order.find({userId: user._id}, (err, ordersDB) => {

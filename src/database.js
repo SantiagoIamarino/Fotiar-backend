@@ -24,8 +24,6 @@ if(process.env.NODE_ENV === 'dev') {
 
 }
 
-console.log(url)
-
 mongoose.connection.openUri(url, (err, res) => {
     if (err) throw err;
 

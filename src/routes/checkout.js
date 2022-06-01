@@ -9,24 +9,15 @@ const mdSameUser = require('../middlewares/sameUser').verifyUser;
 const Order = require('../models/order');
 const User = require('../models/user');
 const Cart = require('../models/cart');
-const Image = require('../models/image');
+
+const { getUserById } = require('../aux/usersAux')
+const { createUserToken } = require('../aux/authAux')
+const { getImages } = require('../aux/imagesAux')
 
 var mercadopago = require('mercadopago');
 mercadopago.configurations.setAccessToken("TEST-2250573947337888-111301-a3d1541cf8e11603c5f12f1998b40338-222073650");
 
 const app = express();
-
-function getUser(userId) {
-    return new Promise((resolve, reject) => {
-        User.findById(userId, (err, userDB) => {
-            if(err || !userDB) {
-                reject()
-            }
-    
-            resolve(userDB);
-        })
-    })
-}
 
 function updateUserPurchases(user) {
     return new Promise((resolve, reject) => {
@@ -62,54 +53,6 @@ function updateUserCart(user) {
             })
         })
     })
-}
-
-function getTokenExpiration() {
-    const daysToExpire = 3;
-    const expiration = 1000 * 60 * 60 * 24 * daysToExpire; // three days in ms
-
-    const tokenExpiration = new Date().getTime() + expiration;
-
-    return tokenExpiration;
-}
-
-function createUserToken(user) {
-    return new Promise((resolve, reject) => {
-        const payload = {
-            check: true,
-            user
-        }
-    
-        const token = jwt.sign(payload, jwtKey, {
-            expiresIn: "3d"
-        });
-
-        resolve( {
-            token,
-            tokenExp: getTokenExpiration()
-        })
-    })
-}
-
-async function getImages(images) {
-    return new Promise((resolve, reject) => {
-        const imagesId = [];
-
-        images.forEach(image => {
-            if(imagesId.indexOf(image.imageId._id) < 0) {
-                imagesId.push(image.imageId._id);
-            }
-        });
-    
-        Image.find({ _id: { $in: imagesId } }, (err, imagesFound) => {
-            if(err) {
-                reject(error);
-            }
-    
-            resolve(imagesFound);
-        })
-    })
-    
 }
 
 function getPhotographers(images) {
@@ -211,7 +154,7 @@ app.post('/mercadopago/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], 
     mercadopago.payment.save(payment_data)
         .then(async (response) => {
             if(response.body.status == 'approved') {
-                const userToUpdate = await getUser(req.user._id);
+                const userToUpdate = await getUserById(req.user._id);
                 createOrder(req.body, userToUpdate, response.id).then((orderRes) => {
                     return res.status(201).json({
                         ok: true,
@@ -246,7 +189,7 @@ app.post('/mercadopago/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], 
 })
 
 app.post('/cashier/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], async (req, res) => {
-    const userToUpdate = await getUser(req.user._id);
+    const userToUpdate = await getUserById(req.user._id);
 
     createOrder(req.body, userToUpdate).then((orderRes) => {
         return res.status(201).json({

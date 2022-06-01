@@ -7,6 +7,8 @@ const mdSameUser = require('../middlewares/sameUser').verifyUser;
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 
+const { checkEmail } = require('../aux/usersAux');
+
 const contentToRetrive = '_id role email username name favorites';
 
 app.get('/:userId', [mdAuth, mdSameUser], (req, res) => {
@@ -33,26 +35,6 @@ app.get('/:userId', [mdAuth, mdSameUser], (req, res) => {
         })
     });
 })
-
-function checkEmail(newEmail, lastEmail) {
-    return new Promise((resolve, reject) => {
-        if(newEmail && newEmail !== lastEmail) {
-            User.findOne({email: newEmail}, (errFind, userFound) => {
-                if(userFound) {
-                    reject({
-                        ok: false,
-                        message: 'El email indicado ya se encuentra en uso'
-                    });
-                }
-    
-                resolve(newEmail);
-            })
-        } else {
-            resolve(lastEmail);
-        }
-    })
-    
-}
 
 app.put('/:userId', [mdAuth, mdSameUser], (req, res) => {
     const userId = req.params.userId;

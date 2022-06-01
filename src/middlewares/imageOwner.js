@@ -26,7 +26,6 @@ module.exports.verifyOwner = function( req, res, next ) {
     }
 
     // Access not granted
-    console.log(req.user.purchases);
     return res.status(401).json({
         ok: false,
         message: 'No tienes acceso a esa ruta'
