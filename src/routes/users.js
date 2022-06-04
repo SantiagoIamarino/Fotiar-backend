@@ -8,7 +8,7 @@ const jwtKey = require('../config/vars').jwtKey;
 const mdAuth = require('../middlewares/auth').verifyToken;
 const mdRole = require('../middlewares/role').verifyRole;
 const mdSameUserOrAdmin = require('../middlewares/sameUser').verifyUser;
-const { checkEmail } = require('../aux/usersAux');
+const { checkEmail } = require('../functions/usersAux');
 
 const User = require('../models/user');
 

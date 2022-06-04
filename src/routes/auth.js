@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const Order = require('../models/order');
 
-const { createUserToken, getTokenExpiration } = require('../aux/authAux')
+const { createUserToken, getTokenExpiration } = require('../functions/authAux')
 
 function loginUser(user, password) {
     return new Promise((resolve, reject) => {

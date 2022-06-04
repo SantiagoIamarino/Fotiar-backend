@@ -10,9 +10,9 @@ const Order = require('../models/order');
 const User = require('../models/user');
 const Cart = require('../models/cart');
 
-const { getUserById } = require('../aux/usersAux')
-const { createUserToken } = require('../aux/authAux')
-const { getImages } = require('../aux/imagesAux')
+const { getUserById } = require('../functions/usersAux')
+const { createUserToken } = require('../functions/authAux')
+const { getImages } = require('../functions/imagesAux')
 
 var mercadopago = require('mercadopago');
 mercadopago.configurations.setAccessToken("TEST-2250573947337888-111301-a3d1541cf8e11603c5f12f1998b40338-222073650");

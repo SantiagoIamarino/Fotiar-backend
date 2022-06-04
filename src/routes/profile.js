@@ -7,7 +7,7 @@ const mdSameUser = require('../middlewares/sameUser').verifyUser;
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 
-const { checkEmail } = require('../aux/usersAux');
+const { checkEmail } = require('../functions/usersAux');
 
 const contentToRetrive = '_id role email username name favorites';
 
