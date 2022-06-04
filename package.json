@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --testEnvironment=node --runInBand ./src/tests",
-    "start": "NODE_ENV=prod node src/app.js",
-    "dev": "NODE_ENV=dev nodemon src/app.js"
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
   },
   "author": "",
   "license": "ISC",

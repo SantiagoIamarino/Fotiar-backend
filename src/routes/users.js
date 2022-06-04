@@ -78,13 +78,15 @@ app.post('/get-users', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
     const filters = req.body.filters;
     const pagination = req.body.pagination;
 
+    const term = new RegExp( filters.email, 'i' )
+
     const mongooseFilters = {
-        email: new RegExp( filters.email, 'i' ),
+        $or: [ { email: term }, { name: term } ] ,
         role: filters.role
     }
 
     if(!filters.email) {
-        delete mongooseFilters.email;
+        delete mongooseFilters['$or'];
     }
 
     if(!filters.role) {
@@ -93,7 +95,7 @@ app.post('/get-users', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
 
     let sortFilter = [];
 
-    if(filters.order.by) {
+    if(filters?.order?.by) {
         sortFilter = [[filters.order.by, filters.order.order]];
     }
 
