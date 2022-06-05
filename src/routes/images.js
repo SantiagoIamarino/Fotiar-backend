@@ -11,6 +11,8 @@ const mdSameUser = require('../middlewares/sameUser').verifyUser;
 const mdRole = require('../middlewares/role').verifyRole;
 const mdImageOwner = require('../middlewares/imageOwner').verifyOwner;
 
+const { checkImageAuthorization } = require('../functions/imagesAux')
+
 app.get('/image/:filename', [mdAuth, mdImageOwner], (req, res) => {
     const { filename } = req.params;
     const fullFilePath = path.join(filesUrl, 'users/' + filename);
@@ -46,9 +48,13 @@ app.get('/image-copy/:imageId', (req, res) => {
 
 app.get('/image-detail/:imageId', mdAuth, (req, res) => {
     const imageId = req.params.imageId;
-    const contentToRetrive = '_id copyFileName creationDate photographerId tags exifData'
+    let contentToRetrieve = '_id copyFileName creationDate photographerId tags exifData'
 
-    Image.findById(imageId, contentToRetrive, (err, imageDB) => {
+    if(checkImageAuthorization(req.user)) {
+        contentToRetrieve += ' fileName ownerId'
+    }
+
+    Image.findById(imageId, contentToRetrieve, (err, imageDB) => {
         if(err) {
             return res.status(500).json({
                 ok: false,
@@ -150,7 +156,7 @@ app.post('/search/admin', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE'])],
     })
 })
 
-let contentToRetrive = 'creationDate ownerId exifData tags copyFileName fileName photographerId status uploadDate _id';
+let contentToRetrieve = 'creationDate ownerId exifData tags copyFileName fileName photographerId status uploadDate _id';
 
 app.post('/search/client', (req, res) => {
     const filters = req.body.filters;
@@ -221,7 +227,7 @@ app.post('/search/client', (req, res) => {
         const limit = pagination.perPage;
         const skip = (pagination.actualPage * pagination.perPage) - pagination.perPage;
 
-        Image.find(mongooseFilters, contentToRetrive)
+        Image.find(mongooseFilters, contentToRetrieve)
             .populate('ownerId')
             .skip(skip)
             .limit(limit)
