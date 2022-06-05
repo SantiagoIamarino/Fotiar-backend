@@ -216,6 +216,10 @@ app.post('/search/client', (req, res) => {
 
     let sortFilter = [];
 
+    if(filters.order.by) {
+        sortFilter = [[filters.order.by, filters.order.order]];
+    }
+
     Image.count(mongooseFilters, (errCount, total) => {
         if(errCount) {
             return res.status(500).json({
