@@ -14,7 +14,7 @@ const getUserById = (userId) => {
 
 // This function verifies if the email is already taken
 const checkEmail = (newEmail, lastEmail)  => {
-  console.log('checking')
+
   return new Promise((resolve, reject) => {
 
       // Checking if new email is different than last email

@@ -11,29 +11,9 @@ const User = require('../models/user');
 const Cart = require('../models/cart');
 
 const { getUserById } = require('../functions/usersAux')
-const { createUserToken } = require('../functions/authAux')
-const { getImages } = require('../functions/imagesAux')
-
-var mercadopago = require('mercadopago');
-mercadopago.configurations.setAccessToken("TEST-2250573947337888-111301-a3d1541cf8e11603c5f12f1998b40338-222073650");
+const { generateMPOrder } = require('../functions/mercadopago')
 
 const app = express();
-
-function updateUserPurchases(user) {
-    return new Promise((resolve, reject) => {
-        User.findById(user._id, (errUpdt, userDB) => {
-            if(errUpdt) {
-                reject(errUpdt);
-            }
-
-            userDB.purchases = user.purchases;
-
-            userDB.update(userDB, (errUpdt, userUpdated) => {
-                resolve(userUpdated.purchases);
-            })
-        })
-    })
-}
 
 function updateUserCart(user) {
     return new Promise((resolve, reject) => {
@@ -72,26 +52,15 @@ function getPhotographers(images) {
 function createOrder(data, user, orderId = null) {
     return new Promise(async (resolve, reject) => {
         let images = data.products;
-
-        if(data.paymentOption == 'mercadopago') {
-            images = await getImages(data.products);
-        }
         
         const orderData = {
             images,
             totalAmount: data.total,
             userId: user._id,
             userEmail: data.email,
-            orderId: (orderId) ? orderId : new Date().getTime(),
-            status: (data.paymentOption == 'mercadopago') ? 'completed' : 'pending',
+            status: 'pending',
             paymentMethod: data.paymentOption,
             photographers: getPhotographers(data.products)
-        }
-
-        if(data.paymentOption == 'mercadopago') {
-            const now = new Date();
-            orderData.paymentDate = now;
-            orderData.orderDate = now;
         }
 
         const order = new Order(orderData);
@@ -99,93 +68,51 @@ function createOrder(data, user, orderId = null) {
         order.save(async (err, orderSaved) => {
             if(err) {
                 reject(err);
-            } else {
-                data.products.forEach(product => {
-                    const imageId = product.imageId._id;
-                    if(user.purchases.indexOf(imageId) < 0) {
-                        user.purchases.push(imageId);
-                    }
-                });
+                return;
+            } 
 
-                try {
-                    await updateUserCart(user);
-                    
-                    if(data.paymentOption == 'mercadoPago' && orderId) {
-                        await updateUserPurchases(user);
-                        const tokenData = await createUserToken(user);
-
-                        resolve({
-                            order: orderSaved,
-                            userPurchases: user.purchases,
-                            token: tokenData.token,
-                            tokenExp: tokenData.tokenExp
-                        })
-                    } else {
-                        resolve({
-                            order: orderSaved
-                        })
-                    }
-                    
-
-                } catch (error) {
-                    reject(error)
+            data.products.forEach(product => {
+                const imageId = product.imageId._id;
+                if(user.purchases.indexOf(imageId) < 0) {
+                    user.purchases.push(imageId);
                 }
+            });
+
+            try {
+
+                await updateUserCart(user);
+
+                resolve(orderSaved)
+
+            } catch (error) {
+                reject(error)
             }
         })
     })
 }
 
-app.post('/mercadopago/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], (req, res) => {
-    const payment_data = {
-        transaction_amount: Number(req.body.total),
-        token: req.body.mercadopago.token,
-        description: "Compra de imagenes Fotiar",
-        installments: Number(req.body.mercadopago.installementChoosed),
-        payment_method_id: req.body.mercadopago.paymentMethod,
-        payer: {
-            email: req.body.email,
-            identification: {
-                type: req.body.docType,
-                number: req.body.docNumber
-            }
-        }
-    };
+app.post('/mercadopago/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], async (req, res) => {
+    
+    const order = await createOrder(req.body, req.user)
 
-    mercadopago.payment.save(payment_data)
-        .then(async (response) => {
-            if(response.body.status == 'approved') {
-                const userToUpdate = await getUserById(req.user._id);
-                createOrder(req.body, userToUpdate, response.id).then((orderRes) => {
-                    return res.status(201).json({
-                        ok: true,
-                        order: orderRes.order,
-                        userPurchases: orderRes.userPurchases,
-                        token: orderRes.token,
-                        tokenExp: orderRes.tokenExp
-                    })
-                })
-                .catch((error) => {
-                    return res.status(400).json({
-                        ok: false,
-                        error
-                    })
-                })
-            } else {
-                return res.status(response.status).json({
-                    response,
-                    status: response.body.status,
-                    status_detail: response.body.status_detail,
-                    id: response.body.id
-                });
-            }
-            
+    generateMPOrder(req.body, order.orderId).then((resp) => {
+
+        const qrData = resp.data.qr_data;
+        
+        return res.status(201).json({
+            ok: true,
+            qrData
         })
-        .catch((error) => {
-            return res.status(400).json({
-                ok: false,
-                error
-            });
-        });
+
+    })
+    .catch((error) => {
+        console.log(error)
+        return res.status(400).json({
+            ok: false,
+            error
+        })
+    })
+    
 })
 
 app.post('/cashier/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], async (req, res) => {
@@ -194,10 +121,7 @@ app.post('/cashier/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], asyn
     createOrder(req.body, userToUpdate).then((orderRes) => {
         return res.status(201).json({
             ok: true,
-            order: orderRes.order,
-            userPurchases: orderRes.userPurchases,
-            token: orderRes.token,
-            tokenExp: orderRes.tokenExp
+            order: orderRes,
         })
     })
     .catch((error) => {

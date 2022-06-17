@@ -5,6 +5,9 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
+const dotenv = require('dotenv');
+dotenv.config();
+
 // CORS, ONLY FOR DEV
 
 app.use(function(req, res, next) {

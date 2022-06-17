@@ -2,9 +2,6 @@ const mongoose = require('mongoose');
 
 let url;
 
-const dotenv = require('dotenv');
-dotenv.config();
-
 url = process.env.MONGO_URL;
 
 mongoose.connection.openUri(url, (err, res) => {
