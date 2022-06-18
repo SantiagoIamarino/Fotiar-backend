@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --testEnvironment=node --runInBand ./src/tests",
+    "test": "SET TESTING_ENV=test & jest --verbose --silent --detectOpenHandles ./src/tests",
     "start": "node src/app.js",
     "dev": "nodemon src/app.js"
   },
@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "jest": "^28.1.0",
-    "mongodb-memory-server": "^8.6.0"
+    "mongodb-memory-server": "^8.6.0",
+    "supertest": "^6.2.3"
   }
 }

@@ -1,13 +1,10 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
-const jwtKey = require('../config/vars').jwtKey;
 
 const mdAuth = require('../middlewares/auth').verifyToken;
 const mdRole = require('../middlewares/role').verifyRole;
 const mdSameUser = require('../middlewares/sameUser').verifyUser;
 
 const Order = require('../models/order');
-const User = require('../models/user');
 const Cart = require('../models/cart');
 
 const { getUserById } = require('../functions/usersAux')
@@ -106,7 +103,7 @@ app.post('/mercadopago/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], 
 
     })
     .catch((error) => {
-        console.log(error)
+
         return res.status(400).json({
             ok: false,
             error

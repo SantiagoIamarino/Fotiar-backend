@@ -5,9 +5,6 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
-const dotenv = require('dotenv');
-dotenv.config();
-
 // CORS, ONLY FOR DEV
 
 app.use(function(req, res, next) {
@@ -21,8 +18,6 @@ app.use(function(req, res, next) {
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true, parameterLimit: 50000 }));
 
-
-const http = require('http').createServer( app);
 
 // Import routes
 const userRoutes =  require('./routes/users');
@@ -38,7 +33,12 @@ const cashierRoutes =  require('./routes/cashier');
 const ordersRoutes =  require('./routes/orders');
 
 // DB connection
-const mongoose = require('./database')
+if(!process.env.TESTING_ENV) {
+    const dotenv = require('dotenv')
+    dotenv.config()
+
+    var mongoose = require('./database')
+}
 
 // Routes 
 app.use('/users', userRoutes);
@@ -55,6 +55,8 @@ app.use('/orders', ordersRoutes);
 
 
 // Listen port 3000
-http.listen(3000, () => {
+const server = app.listen(3000, () => {
     console.log('Express running on port 3000');
 })
+
+module.exports = { app, server }

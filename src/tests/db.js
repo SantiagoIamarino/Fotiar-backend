@@ -9,7 +9,7 @@ const connect = async () => {
   
   const mongooseOpts = {
     useNewUrlParser: true,
-    useNewUnifiedTopology: true,
+    useUnifiedTopology: true,
     poolSize: 10
   }
 
@@ -25,9 +25,9 @@ const disconnect = async () => {
 
 const clearDB = async () => {
   const collections = Object.keys(mongoose.connection.collections)
-  console.log({collections})
+
   for(const key of collections) {
-    const collection = collections[key]
+    const collection = mongoose.connection.collections[key]
     await collection.deleteMany()
   }
 }
