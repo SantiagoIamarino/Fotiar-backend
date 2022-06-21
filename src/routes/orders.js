@@ -3,9 +3,11 @@ const app = express();
 
 const mdAuth = require('../middlewares/auth').verifyToken;
 const mdRole = require('../middlewares/role').verifyRole;
+const mdSameUser = require('../middlewares/sameUser').verifyUser;
 
 const Order = require('../models/order');
 
+const { getOrderByFilters } = require('../functions/orderAux')
 
 function getOwnedImages(images, photographer) {
     const imagesOwned = [];
@@ -41,6 +43,20 @@ app.get('/:orderId', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE'])], (req
                 order: orderDB
             })
         })
+})
+
+app.post('/client/order/:userId', [mdAuth, mdSameUser], (req, res) => {
+    getOrderByFilters({orderId: req.body.orderId}).then((orderDB) => {
+        return res.status(200).json({
+            ok: true,
+            order: orderDB
+        })
+    }).catch((error) => {
+        return res.status(500).json({
+            ok: false,
+            error
+        })
+    })
 })
 
 app.post('/search', [mdAuth, mdRole(['ADMIN_ROLE', 'PHOTOGRAPHER_ROLE'])], (req, res) => {

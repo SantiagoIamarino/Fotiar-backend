@@ -38,8 +38,25 @@ const checkEmail = (newEmail, lastEmail)  => {
   })
 }
 
+function updateUserPurchases(user) {
+  return new Promise((resolve, reject) => {
+      User.findById(user._id, (errUpdt, userDB) => {
+          if(errUpdt) {
+              reject(errUpdt);
+          }
+
+          userDB.purchases = user.purchases;
+
+          userDB.update(userDB, (errUpdt, userUpdated) => {
+              resolve(user.purchases);
+          })
+      })
+  })
+}
+
 
 module.exports = {
   checkEmail,
-  getUserById
+  getUserById,
+  updateUserPurchases
 }

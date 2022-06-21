@@ -5,6 +5,9 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
+const dotenv = require('dotenv')
+dotenv.config()
+
 // CORS, ONLY FOR DEV
 
 app.use(function(req, res, next) {
@@ -31,12 +34,10 @@ const cartRoutes =  require('./routes/cart');
 const checkoutRoutes =  require('./routes/checkout');
 const cashierRoutes =  require('./routes/cashier');
 const ordersRoutes =  require('./routes/orders');
+const notificationsRoutes = require('./routes/notifications')
 
 // DB connection
 if(!process.env.TESTING_ENV) {
-    const dotenv = require('dotenv')
-    dotenv.config()
-
     var mongoose = require('./database')
 }
 
@@ -52,6 +53,7 @@ app.use('/cart', cartRoutes);
 app.use('/checkout', checkoutRoutes);
 app.use('/cashier', cashierRoutes);
 app.use('/orders', ordersRoutes);
+app.use('/notifications', notificationsRoutes);
 
 
 // Listen port 3000

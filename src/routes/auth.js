@@ -31,7 +31,7 @@ function loginUser(user, password) {
 // Verifies that orders collection has the same information that the user node
 function validatePurchases(user) {
     return new Promise((resolve, reject) => {
-        Order.find({userId: user._id}, (err, ordersDB) => {
+        Order.find({userId: user._id, status: 'completed'}, (err, ordersDB) => {
             if(err) {
                 reject(err);
             }

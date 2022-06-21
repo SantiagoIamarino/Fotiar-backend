@@ -18,6 +18,8 @@ app.get('/image/:filename', [mdAuth, mdImageOwner], (req, res) => {
     const fullFilePath = path.join(filesUrl, 'users/' + filename);
     const defaultImagePath = path.join(filesUrl, 'default.png');
 
+    // Buscar una compra completada por el cliente que tenga el id de la imagen
+
     if(fs.existsSync(fullFilePath)) {
         return res.sendFile(fullFilePath);
     } else {

@@ -17,11 +17,11 @@ module.exports.verifyOwner = function( req, res, next ) {
 
     //Verifying if this user has bought this image
     const imageId = req.query.imageId;
-
+    
     if(req.user.purchases.indexOf(imageId) >= 0) {
         req.isOwnerOrAdmin = false;
         next();
-
+        
         return;
     }
 

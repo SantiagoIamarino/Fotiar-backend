@@ -8,22 +8,7 @@ const Image = require('../models/image');
 const mdAuth = require('../middlewares/auth').verifyToken;
 const mdRole = require('../middlewares/role').verifyRole;
 
-function updateUserPurchases(user) {
-    return new Promise((resolve, reject) => {
-        User.findById(user._id, (errUpdt, userDB) => {
-            if(errUpdt) {
-                reject(errUpdt);
-            }
-
-            userDB.purchases = user.purchases;
-
-            userDB.update(userDB, (errUpdt, userUpdated) => {
-                resolve(user.purchases);
-            })
-        })
-    })
-}
-
+const { updateUserPurchases } = require('../functions/usersAux')
 
 app.post('/get-orders', [mdAuth, mdRole(['ADMIN_ROLE', 'CASHIER_ROLE'])], (req, res) => {
     const filters = req.body.filters;
@@ -145,7 +130,7 @@ app.post('/mark-as-payed/:orderId', [mdAuth, mdRole(['ADMIN_ROLE', 'CASHIER_ROLE
                 }
 
                 orderDB.images.forEach(image => {
-                    const imageId = image._id;
+                    const imageId = image.imageId._id;
                     
                     if(userDB.purchases.indexOf(imageId) < 0) {
                         userDB.purchases.push(imageId);

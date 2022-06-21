@@ -7,6 +7,8 @@ const mdAuth = require('../middlewares/auth').verifyToken;
 const mdRole = require('../middlewares/role').verifyRole;
 const mdSameUser = require('../middlewares/sameUser').verifyUser;
 
+const { cleanUserCart } = require('../functions/cartAux') 
+
 function createCart(userId, products = []) {
     return new Promise((resolve, reject) => {
         const cart = new Cart({
@@ -141,6 +143,22 @@ app.delete('/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], (req, res)
             })
         })
     })
+})
+
+app.delete('/clean-cart/:userId', [mdAuth, mdSameUser], (req, res) => {
+    
+    cleanUserCart(req.user).then(() => {
+        return res.status(200).json({
+            ok: true
+        })
+    })
+    .catch((error) => {
+        return res.status(500).json({
+            ok: false,
+            error
+        })
+    })
+
 })
 
 
