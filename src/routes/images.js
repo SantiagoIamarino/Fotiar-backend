@@ -12,13 +12,27 @@ const mdRole = require('../middlewares/role').verifyRole;
 const mdImageOwner = require('../middlewares/imageOwner').verifyOwner;
 
 const { checkImageAuthorization } = require('../functions/imagesAux')
+const { getOrderByFilters } = require('../functions/orderAux')
 
-app.get('/image/:filename', [mdAuth, mdImageOwner], (req, res) => {
+app.get('/image/:filename', [mdAuth, mdImageOwner], async (req, res) => {
     const { filename } = req.params;
     const fullFilePath = path.join(filesUrl, 'users/' + filename);
     const defaultImagePath = path.join(filesUrl, 'default.png');
+    const imageId = req.query.imageId;
 
     // Buscar una compra completada por el cliente que tenga el id de la imagen
+    const order = await getOrderByFilters({
+        userId: req.user._id,
+        status: 'completed',
+        images: imageId
+    })
+
+    if(!order) {
+        return res.status(403).json({
+            ok: false,
+            message: 'No tienes acceso a esta imagen'
+        })
+    }
 
     if(fs.existsSync(fullFilePath)) {
         return res.sendFile(fullFilePath);

@@ -9,6 +9,7 @@ const Cart = require('../models/cart');
 
 const { getUserById } = require('../functions/usersAux')
 const { generateMPOrderQR, generatePreference } = require('../functions/mercadopago')
+const { cleanUserCart } = require('../functions/cartAux') 
 
 const app = express();
 
@@ -27,35 +28,37 @@ function getPhotographers(images) {
 }
 
 function createOrder(data, user, orderId = null) {
-    return new Promise(async (resolve, reject) => {
-        let images = data.products;
-        
-        const orderData = {
-            images,
-            totalAmount: data.total,
-            userId: user._id,
-            userEmail: data.email,
-            status: 'pending',
-            paymentMethod: data.paymentOption,
-            photographers: getPhotographers(data.products)
-        }
-
-        const order = new Order(orderData);
+  return new Promise(async (resolve, reject) => {
     
-        order.save(async (err, orderSaved) => {
-            
-            if(err) {
-                reject(err);
-                return;
-            } 
+    const orderData = {
+      images: data.imageIds,
+      subtotal: data.subtotal,
+      totalAmount: data.total,
+      userId: user._id,
+      userEmail: data.email,
+      status: 'pending',
+      paymentMethod: data.paymentOption,
+      photographers: getPhotographers(data.products),
+      discounts: data.discounts
+    }
 
-            resolve(orderSaved)
+    const order = new Order(orderData);
 
-        })
+    order.save(async (err, orderSaved) => {
+        
+        if(err) {
+          reject(err);
+          return;
+        } 
+
+        resolve(orderSaved)
+
     })
+  })
 }
 
 app.post('/mercadopago/preference/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], async (req, res) => {
+
   const order = await createOrder(req.body, req.user)
 
   generatePreference(req.body, order.orderId)
@@ -70,7 +73,10 @@ app.post('/mercadopago/preference/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT
     })
     .catch(function (error) {
 
-                resolve(orderSaved)
+      return res.status(500).json({
+        ok: false,
+        error
+      })
 
     })
 })
@@ -91,29 +97,33 @@ app.post('/mercadopago/qr/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])
     })
     .catch((error) => {
 
-        return res.status(400).json({
-            ok: false,
-            error
-        })
+      return res.status(400).json({
+        ok: false,
+        error
+      })
+
     })
     
 })
 
 app.post('/cashier/:userId', [mdAuth, mdSameUser, mdRole(['CLIENT_ROLE'])], async (req, res) => {
-    const userToUpdate = await getUserById(req.user._id);
+  const userToUpdate = await getUserById(req.user._id);
 
-    createOrder(req.body, userToUpdate).then((orderRes) => {
-        return res.status(201).json({
-            ok: true,
-            order: orderRes,
-        })
+  createOrder(req.body, userToUpdate).then(async(orderRes) => {
+
+    await cleanUserCart(req.user)
+
+    return res.status(201).json({
+      ok: true,
+      order: orderRes,
     })
-    .catch((error) => {
-        return res.status(400).json({
-            ok: false,
-            error
-        })
+  })
+  .catch((error) => {
+    return res.status(400).json({
+      ok: false,
+      error
     })
+  })
 })
 
 module.exports = app;

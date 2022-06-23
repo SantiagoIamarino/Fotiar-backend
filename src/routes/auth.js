@@ -45,8 +45,8 @@ function validatePurchases(user) {
 
             ordersDB.forEach(order => {
                 order.images.forEach(image => {
-                    if(user.purchases.indexOf(image.imageId._id) < 0) {
-                        user.purchases.push(image.imageId._id);
+                    if(user.purchases.indexOf(image._id) < 0) {
+                        user.purchases.push(image._id);
                     }
                 });
             });

@@ -16,7 +16,8 @@ app.post('/get-orders', [mdAuth, mdRole(['ADMIN_ROLE', 'CASHIER_ROLE'])], (req, 
 
     const mongooseFilters = {
         userEmail: new RegExp( filters.email, 'i' ),
-        status: 'pending'
+        status: 'pending',
+        paymentMethod: 'cashier'
     }
 
     if(!filters.email) {
@@ -67,8 +68,8 @@ async function getImages(images) {
         const imagesId = [];
 
         images.forEach(image => {
-            if(imagesId.indexOf(image.imageId._id) < 0) {
-                imagesId.push(image.imageId._id);
+            if(imagesId.indexOf(image._id) < 0) {
+                imagesId.push(image._id);
             }
         });
     
@@ -86,7 +87,7 @@ async function getImages(images) {
 app.post('/mark-as-payed/:orderId', [mdAuth, mdRole(['ADMIN_ROLE', 'CASHIER_ROLE'])], (req, res) => {
     const orderId = req.params.orderId;
 
-    Order.findById(orderId, async (err, orderDB) => {
+    Order.findOne({_id: orderId, paymentMethod: 'cashier'}, async (err, orderDB) => {
         if(err) {
             return res.status(500).json({
                 ok: false,
@@ -103,7 +104,7 @@ app.post('/mark-as-payed/:orderId', [mdAuth, mdRole(['ADMIN_ROLE', 'CASHIER_ROLE
 
         orderDB.status = 'completed';
         orderDB.paymentDate = new Date();
-        orderDB.images = await getImages(orderDB.images);
+        // orderDB.images = await getImages(orderDB.images);
 
         orderDB.update(orderDB, (errUpdt, orderUpdated) => {
             if(errUpdt) {
@@ -129,12 +130,12 @@ app.post('/mark-as-payed/:orderId', [mdAuth, mdRole(['ADMIN_ROLE', 'CASHIER_ROLE
                     })
                 }
 
-                orderDB.images.forEach(image => {
-                    const imageId = image.imageId._id;
-                    
+                orderDB.images.forEach(imageId => {
+
                     if(userDB.purchases.indexOf(imageId) < 0) {
                         userDB.purchases.push(imageId);
                     }
+                    
                 });
 
                 try {

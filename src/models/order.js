@@ -4,6 +4,7 @@ const Schema = mongoose.Schema;
 const orderSchema = new Schema({
     orderId: { type: String, default: new Date().getTime() },
     images: { type: Array, required: true },
+    subtotal: { type: Number, required: true },
     totalAmount: { type: Number, required: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     userEmail: { type: String, required: true },
@@ -13,7 +14,8 @@ const orderSchema = new Schema({
     paymentDate: { type: Date, default: null },
     paymentMethod: { type: String, default: 'mercadopago' }, // mercadopago/cashier
     observation: { type: String },
-    photographers: { type: Array, required: true }
+    photographers: { type: Array, required: true },
+    discounts: { type: Array, default: [] }
 });
 
 module.exports = mongoose.model('Order', orderSchema);
