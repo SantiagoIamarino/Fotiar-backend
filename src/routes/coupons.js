@@ -4,11 +4,11 @@ const app = express()
 const mdAuth = require('../middlewares/auth').verifyToken;
 const mdRole = require('../middlewares/role').verifyRole;
 
-const ComboDiscount = require('../models/comboDiscount')
+const Coupon = require('../models/coupon')
 
-app.get('/combos/get-combo/:imagesAmount', [mdAuth], (req, res) => {
+app.get('/get-coupon/:code', [mdAuth], (req, res) => {
 
-  ComboDiscount.findOne({ imagesAmount: req.params.imagesAmount }, (err, comboDiscount) => {
+  Coupon.findOne({ code: req.params.code }, (err, coupon) => {
 
     if(err) {
       return res.status(500).json({
@@ -19,19 +19,18 @@ app.get('/combos/get-combo/:imagesAmount', [mdAuth], (req, res) => {
 
     return res.status(200).json({
       ok: true,
-      discountApplies: (comboDiscount) ? true : false,
-      discountPercentage: (comboDiscount) ? comboDiscount.percentage : null
+      coupon
     })
 
   })
 
 })
 
-app.post('/combos/get-combos', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
+app.post('/get-coupons', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
 
   const pagination = req.body.pagination;
 
-  ComboDiscount.count({}, (errCount, total) => {
+  Coupon.count({}, (errCount, total) => {
 
     if(errCount) {
       return res.status(500).json({
@@ -43,11 +42,11 @@ app.post('/combos/get-combos', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
     const limit = pagination.perPage;
     const skip = (pagination.actualPage * pagination.perPage) - pagination.perPage;
 
-    ComboDiscount.find({})
-    .sort([['imagesAmount', 1]])
+    Coupon.find({})
+    .sort([['discountPercentage', 1]])
     .skip(skip)
     .limit(limit)
-    .exec( (err, comboDiscounts) => {
+    .exec( (err, coupons) => {
 
       if(err) {
         return res.status(500).json({
@@ -58,7 +57,7 @@ app.post('/combos/get-combos', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
 
       return res.status(200).json({
         ok: true,
-        comboDiscounts,
+        coupons,
         total,
         skip
       })
@@ -69,9 +68,9 @@ app.post('/combos/get-combos', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
 
 })
 
-app.post('/combos', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
+app.post('/', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
 
-  ComboDiscount.findOne({ imagesAmount: req.body.imagesAmount }, (err, existingComboDiscount) => {
+  Coupon.findOne({ code: req.body.code }, (err, existingCoupon) => {
     
     if(err) {
       return res.status(500).json({
@@ -80,16 +79,16 @@ app.post('/combos', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
       })
     }
 
-    if(existingComboDiscount) {
+    if(existingCoupon) {
       return res.status(400).json({
         ok: false,
-        message: 'Ya existe un descuento para esa cantidad de imagenes'
+        message: 'Ya existe un cupón con ese código'
       })
     }
 
-    const comboDiscount = new ComboDiscount(req.body)
+    const coupon = new Coupon(req.body)
 
-    comboDiscount.save((errSaving, comboDiscountSaved) => {
+    coupon.save((errSaving, couponSaved) => {
 
       if(errSaving) {
         return res.status(500).json({
@@ -100,7 +99,7 @@ app.post('/combos', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
 
       return res.status(201).json({
         ok: true,
-        comboDiscountSaved
+        couponSaved
       })
 
     })
@@ -109,11 +108,11 @@ app.post('/combos', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
 
 })
 
-app.delete('/combos/:id', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
+app.delete('/:id', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
 
   const id = req.params.id
 
-  ComboDiscount.findByIdAndDelete(id, (err, comboDeleted) => {
+  Coupon.findByIdAndDelete(id, (err, couponDeleted) => {
 
     if(err) {
       return res.status(500).json({
@@ -124,7 +123,7 @@ app.delete('/combos/:id', [mdAuth, mdRole(['ADMIN_ROLE'])], (req, res) => {
 
     return res.status(200).json({
       ok: true,
-      message: 'Combo eliminado correctamente'
+      message: 'Cupón eliminado correctamente'
     })
 
   })

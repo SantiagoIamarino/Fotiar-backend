@@ -35,7 +35,9 @@ const checkoutRoutes =  require('./routes/checkout');
 const cashierRoutes =  require('./routes/cashier');
 const ordersRoutes =  require('./routes/orders');
 const notificationsRoutes = require('./routes/notifications')
-const discountsRoutes = require('./routes/discounts')
+const combosRoutes = require('./routes/combos')
+const couponsRoutes = require('./routes/coupons')
+
 
 // DB connection
 if(!process.env.TESTING_ENV) {
@@ -55,7 +57,8 @@ app.use('/checkout', checkoutRoutes);
 app.use('/cashier', cashierRoutes);
 app.use('/orders', ordersRoutes);
 app.use('/notifications', notificationsRoutes);
-app.use('/discounts', discountsRoutes);
+app.use('/discounts/combos', combosRoutes);
+app.use('/discounts/coupons', couponsRoutes);
 
 
 // Listen port 3000
