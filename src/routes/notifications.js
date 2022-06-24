@@ -74,12 +74,12 @@ app.post('/', async (req, res) => {
 
     const userDB = await getUserById(orderDB.userId)
 
-    orderDB.images.forEach(image => {
-      const imageId = image.imageId._id;
-      
+    orderDB.images.forEach(imageId => {
+
       if(userDB.purchases.indexOf(imageId) < 0) {
         userDB.purchases.push(imageId);
       }
+
     });
 
     await updateUserPurchases(userDB)

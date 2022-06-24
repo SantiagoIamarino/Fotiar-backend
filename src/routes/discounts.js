@@ -19,7 +19,7 @@ app.get('/combos/get-combo/:imagesAmount', [mdAuth], (req, res) => {
 
     return res.status(200).json({
       ok: true,
-      discountApplies: true,
+      discountApplies: (comboDiscount) ? true : false,
       discountPercentage: (comboDiscount) ? comboDiscount.percentage : null
     })
 

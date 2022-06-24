@@ -46,7 +46,7 @@ const generateMPOrderQR = (data, orderId) => {
 }
 
 const generatePreference = (data, orderId) => {
-  
+  console.log(MP_NOTIFICATIONS_URL)
   // Crea un objeto de preferencia
   let preference = {
     items: data.items,
