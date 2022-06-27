@@ -20,20 +20,22 @@ app.get('/image/:filename', [mdAuth, mdImageOwner], async (req, res) => {
     const defaultImagePath = path.join(filesUrl, 'default.png');
     const imageId = req.query.imageId;
 
-    // Buscar una compra completada por el cliente que tenga el id de la imagen
-    const order = await getOrderByFilters({
-        userId: req.user._id,
-        status: 'completed',
-        images: imageId
-    })
-
-    if(!order) {
-        return res.status(403).json({
-            ok: false,
-            message: 'No tienes acceso a esta imagen'
+    if(!req.isOwnerOrAdmin) {
+        // Buscar una compra completada por el cliente que tenga el id de la imagen
+        const order = await getOrderByFilters({
+            userId: req.user._id,
+            status: 'completed',
+            images: imageId
         })
-    }
 
+        if(!order) {
+            return res.status(403).json({
+                ok: false,
+                message: 'No tienes acceso a esta imagen'
+            })
+        }
+    }
+    
     if(fs.existsSync(fullFilePath)) {
         return res.sendFile(fullFilePath);
     } else {
