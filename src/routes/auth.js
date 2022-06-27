@@ -42,16 +42,17 @@ function validatePurchases(user) {
 
             let oldPurchases = user.purchases;
             user.purchases = [];
+            
 
             ordersDB.forEach(order => {
                 order.images.forEach(image => {
-                    if(user.purchases.indexOf(image._id) < 0) {
-                        user.purchases.push(image._id);
+                    if(user.purchases.indexOf(image) < 0) {
+                        user.purchases.push(image);
                     }
                 });
             });
 
-            if(oldPurchases.length == user.purchases.length) {
+            if(oldPurchases == user.purchases) {
                 resolve(user);
             }
 
